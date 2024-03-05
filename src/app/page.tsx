@@ -34,7 +34,7 @@ export default function Home() {
         </div>
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <Html5QrcodePlugin
-            fps={10} // Example configuration options for Html5QrcodePlugin
+            fps={10} 
             qrbox={250}
             aspectRatio={1}
             disableFlip={false}

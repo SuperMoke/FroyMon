@@ -1,5 +1,5 @@
-import { Html5QrcodeScanner } from 'html5-qrcode';
 import { useEffect } from 'react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface Html5QrcodePluginProps {
     fps?: number;
@@ -13,7 +13,6 @@ interface Html5QrcodePluginProps {
 
 const qrcodeRegionId = "html5qr-code-full-region";
 
-// Creates the configuration object for Html5QrcodeScanner.
 const createConfig = (props: Html5QrcodePluginProps) => {
     let config: any = {};
     if (props.fps) {
@@ -34,17 +33,14 @@ const createConfig = (props: Html5QrcodePluginProps) => {
 const Html5QrcodePlugin = (props: Html5QrcodePluginProps) => {
 
     useEffect(() => {
-        // when component mounts
         const config = createConfig(props);
         const verbose = props.verbose === true;
-        // Suceess callback is required.
-        if (!(props.qrCodeSuccessCallback)) {
+        if (!props.qrCodeSuccessCallback) {
             throw new Error("qrCodeSuccessCallback is required callback.");
         }
         const html5QrcodeScanner = new Html5QrcodeScanner(qrcodeRegionId, config, verbose);
         html5QrcodeScanner.render(props.qrCodeSuccessCallback, props.qrCodeErrorCallback);
 
-        // cleanup function when component will unmount
         return () => {
             html5QrcodeScanner.clear().catch((error: any) => {
                 console.error("Failed to clear html5QrcodeScanner. ", error);
@@ -53,7 +49,19 @@ const Html5QrcodePlugin = (props: Html5QrcodePluginProps) => {
     }, []);
 
     return (
-        <div id={qrcodeRegionId} />
+        <div id={qrcodeRegionId} style={{ color: 'black' }}>
+            <style>
+                {`
+                    .html5-qrcode-scanner-video, .html5-qrcode-laser {
+                        filter: invert(0) hue-rotate(180deg);
+                    }
+                    .html5-qrcode-region-fill {
+                        background: none;
+                        border: 2px solid black;
+                    }
+                `}
+            </style>
+        </div>
     );
 };
 
