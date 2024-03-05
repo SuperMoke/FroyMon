@@ -37,7 +37,7 @@ export default function Home() {
             fps={10} 
             qrbox={250}
             aspectRatio={1}
-            disableFlip={false}
+            disableFlip={true}
             verbose={false}
             qrCodeSuccessCallback={handleRead}
             qrCodeErrorCallback={(errorMessage: string) => console.error(errorMessage)}
