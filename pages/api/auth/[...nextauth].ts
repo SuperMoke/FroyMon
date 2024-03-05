@@ -1,35 +1,34 @@
-import NextAuth from "next-auth";
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {signInWithEmailAndPassword} from 'firebase/auth';
 import { auth } from "@/app/firebase";
+
 
 export const authOptions = {
   // Configure one or more authentication providers
   pages: {
-    signIn: "/signin",
+    signIn: '/signin'
   },
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {},
       async authorize(credentials): Promise<any> {
-        try {
-          const userCredential = await signInWithEmailAndPassword(
-            auth,
-            credentials.email || "",
-            credentials.password || ""
-          );
-          if (userCredential.user) {
-            return userCredential.user;
-          }
-          return null;
-        } catch (error) {
-          console.error("Error during sign in:", error);
-          throw new Error("Failed to sign in");
-        }
-      },
-    }),
+        return await signInWithEmailAndPassword(auth, (credentials as any).email || '', (credentials as any).password || '')
+          .then(userCredential => {
+            if (userCredential.user) {
+              return userCredential.user;
+            }
+            return null;
+          })
+          .catch(error => (console.log(error)))
+  .catch((error) => {
+    const errorCode = error.code;
+    const errorMessage = error.message;
+    console.log(error);
+  });
+      }
+    })
   ],
-};
-
-export default NextAuth(authOptions);
+}
+export default NextAuth(authOptions)
