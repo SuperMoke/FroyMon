@@ -5,7 +5,10 @@ import { signOut, useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import router from 'next/router';
 import React from 'react';
-import QrCodeReader, {QRCode} from 'react-qrcode-reader';
+import QrCodeReader, { QRCode } from 'react-qrcode-reader';
+import Html5QrcodePlugin from './Html5QrcodePlugin'; 
+
+
 
 
 export default function Home() {
@@ -16,10 +19,11 @@ export default function Home() {
     },
   });
 
+
   const [val, setVal] =  React.useState<string>('');
-  const handleRead = (code: QRCode) =>{
-    setVal(code.data);
-  }
+  const handleRead = (decodedText: string, decodedResult: any) => {
+    setVal(decodedText);
+  };
   return (
     <>
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -29,7 +33,15 @@ export default function Home() {
           </h2>
         </div>
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <QrCodeReader delay={100} width={500} height={500} onRead={handleRead} />
+        <Html5QrcodePlugin
+            fps={10} // Example configuration options for Html5QrcodePlugin
+            qrbox={250}
+            aspectRatio={1}
+            disableFlip={false}
+            verbose={false}
+            qrCodeSuccessCallback={handleRead}
+            qrCodeErrorCallback={(errorMessage: string) => console.error(errorMessage)}
+          />
           <div className='text-black text-center'>Account Email: {session?.data?.user?.email}</div>
           <div className='text-black text-center'>Value of the QR: {val}</div>
         </div>       
