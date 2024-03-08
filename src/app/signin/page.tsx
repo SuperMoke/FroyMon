@@ -17,7 +17,7 @@ export default function Signin() {
       email,
       password,
       redirect: false,
-      callbackUrl: '/',
+      callbackUrl: '/user',
     });
     if (result?.error) {
       setError('Sorry, Wrong Email or Password!');
