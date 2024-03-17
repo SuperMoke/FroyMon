@@ -17,12 +17,18 @@ export default function Signin() {
       email,
       password,
       redirect: false,
-      callbackUrl: '/user',
+      callbackUrl: '/',
     });
     if (result?.error) {
       setError('Sorry, Wrong Email or Password!');
     } else {
-      router.push('/')
+      if(email.includes('teacher')){
+        router.push('/teacher')
+      } else if(email.includes('admin')){
+        router.push('/admin')
+      } else{
+        router.push('/user')
+      }
     }
   };
 

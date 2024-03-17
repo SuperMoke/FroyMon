@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Card, CardBody } from "@material-tailwind/react/components/Card"
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from '../firebase';
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import Button from "@material-tailwind/react/components/Button";
 
 export default function AdminPage() {
     const [students, setStudents] = useState<{
@@ -12,6 +15,16 @@ export default function AdminPage() {
         computernumber: string;
         computerstatus: string;
     }[]>([]);
+
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    React.useEffect(() => {
+        if (!session) {
+          router.push('/signin'); 
+        }
+      }, [session, status, router]);
+      
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +64,13 @@ export default function AdminPage() {
                     </CardBody>
                 </Card>
             ))}
+            <Button 
+            className='flex mt-5 justify-center'
+            placeholder={undefined} 
+            onClick={() => signOut()}            
+          >
+            Logout
+          </Button>
         </div>
     )
 }

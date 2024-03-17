@@ -3,6 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Card, CardBody } from "@material-tailwind/react/components/Card"
 import { collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from '../firebase';
+import Button from "@material-tailwind/react/components/Button";
+import { signOut, useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
 
 export default function TeacherHomepage() {
     const [students, setStudents] = useState<{
@@ -10,17 +13,23 @@ export default function TeacherHomepage() {
         name: string;
         computernumber: string;
     }[]>([]);
+    const { data: session, status } = useSession();
+    const router = useRouter();
+
+    React.useEffect(() => {
+        if (!session) {
+          router.push('/signin'); 
+        }
+      }, [session, status, router]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const studentsCollection = collection(db, 'items'); // Assuming 'items' is the collection name
+            const studentsCollection = collection(db, 'items'); 
             const snapshot = await getDocs(studentsCollection);
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as { name: string; computernumber: string; } }));
             setStudents(data);
         };
-
         fetchData();
-
         const unsubscribe = onSnapshot(collection(db, 'items'), (querySnapshot) => {
             const updatedStudents = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as { name: string; computernumber: string; } }));
             setStudents(updatedStudents);
@@ -44,6 +53,13 @@ export default function TeacherHomepage() {
                     </CardBody>
                 </Card>
             ))}
+            <Button 
+            className='flex mt-5 justify-center'
+            placeholder={undefined} 
+            onClick={() => signOut()}            
+          >
+            Logout
+          </Button>
         </div>
     )
 }
