@@ -5,14 +5,17 @@ import { Input } from '@material-tailwind/react/components/Input';
 import { signIn } from 'next-auth/react';
 import { redirect, useRouter } from 'next/navigation';
 import { useState } from 'react';
+import Loading from '../component/Loading';
 
 export default function Signin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); 
   const router = useRouter();
   
   const handleSignIn = async () => {
+    setLoading(true); 
     const result = await signIn('credentials', {
       email,
       password,
@@ -21,6 +24,7 @@ export default function Signin() {
     });
     if (result?.error) {
       setError('Sorry, Wrong Email or Password!');
+      setLoading(false); 
     } else {
       if(email.includes('teacher')){
         router.push('/teacher')
@@ -35,6 +39,9 @@ export default function Signin() {
   
   return (
     <>
+    {loading ? ( 
+        <Loading />
+      ) : (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
@@ -114,6 +121,7 @@ export default function Signin() {
             </Button>
         </div>
       </div>
+      )}
     </>
-  )
+  );
 }

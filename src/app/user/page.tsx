@@ -8,8 +8,8 @@ import Input from '@material-tailwind/react/components/Input';
 import { Select, Option } from '@material-tailwind/react/components/Select';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
-
-
+import Loading from '../component/Loading';
+import { set } from 'firebase/database';
 
 function UserFormPage({ QRval }: { QRval: string }) {
   const [newItem, setnewItem] = useState({
@@ -141,10 +141,11 @@ function UserFormPage({ QRval }: { QRval: string }) {
 export default function User() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [loggingout, setloggingout] = useState(false);
 
   React.useEffect(() => {
     if (status === 'loading') return; 
-
     if (!session) {
       router.push('/signin'); 
     }
@@ -153,11 +154,29 @@ export default function User() {
   const [QRval, QRsetVal] =  React.useState<string>('');
 
   const handleRead = (decodedText: string, decodedResult: any) => {
-    QRsetVal(decodedText);    
+    setLoading(true); 
+    setTimeout(() => {
+      QRsetVal(decodedText);
+      setLoading(false); 
+    }, 3000);
+  };
+
+  const handleLogout = () => {
+    setloggingout(true); 
+    setTimeout(() => {
+      signOut({callbackUrl: '/'});
+    }, 3000);
   };
 
   if (QRval) {
     return <UserFormPage QRval={QRval} />;
+  }
+  if (loading) {
+    return <Loading />;
+  }
+
+  if(loggingout){
+    return <Loading/>
   }
 
   return (
@@ -170,14 +189,11 @@ export default function User() {
         </div>
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <Html5QrcodePlugin
-            fps={10} 
-            qrbox={250}
-            aspectRatio={1}
-            disableFlip={true}
-            verbose={false}
-            qrCodeSuccessCallback={handleRead}
-            qrCodeErrorCallback={(errorMessage: string) => console.error(errorMessage)}
-          />
+                fps={10}
+                qrbox={250}
+                disableFlip={false}
+                qrCodeSuccessCallback={handleRead}
+            />
           <div className='text-black text-center'>Account Email: {session?.user?.email}</div>
           <div className='text-black text-center'>Value of the QR: {QRval}</div>
         </div>  
@@ -187,7 +203,7 @@ export default function User() {
           <Button 
             className='flex w-full justify-center'
             placeholder={undefined} 
-            onClick={() => signOut()}            
+            onClick={handleLogout}            
           >
             Logout
           </Button>
@@ -196,5 +212,3 @@ export default function User() {
     </>
   );
 }
-
-User.requireAuth = true;
