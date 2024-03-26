@@ -10,6 +10,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import Loading from '../component/Loading';
 import { set } from 'firebase/database';
+import Alert from '@material-tailwind/react/components/Alert';
 
 function UserFormPage({ QRval }: { QRval: string }) {
   const [newItem, setnewItem] = useState({
@@ -20,6 +21,9 @@ function UserFormPage({ QRval }: { QRval: string }) {
     compnumber: '',
     compstatus: ''
   });
+
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     setnewItem(prevState => ({
@@ -35,6 +39,8 @@ function UserFormPage({ QRval }: { QRval: string }) {
     }
   };
 
+
+
   const addItem = () => {
     addDoc(collection(db,'items'),{
       name: newItem.name,
@@ -44,7 +50,19 @@ function UserFormPage({ QRval }: { QRval: string }) {
       computernumber : newItem.compnumber,
       computerstatus : newItem.compstatus
     })
+    setLoading(true); 
+    setTimeout(() => {
+      setSubmitted(true);
+    }, 2000);
   };
+
+  if(submitted){
+    return <Thankyoupage/>
+  }
+
+  if(loading){
+    return <Loading/>
+  }
 
   return (
     <>
@@ -138,6 +156,51 @@ function UserFormPage({ QRval }: { QRval: string }) {
   );
 }
 
+
+function Thankyoupage () {
+  const [loggingout, setloggingout] = useState(false);
+  const handleLogout = () => {
+    setloggingout(true); 
+    setTimeout(() => {
+      signOut({callbackUrl: '/'});
+    }, 2000);
+  };
+
+  if(loggingout){
+    return <Loading/>
+  }
+
+  return(
+    <>
+  <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+      <img
+            className="mx-auto h-20 w-auto mb-5"
+            src="./froymon_logo.png"
+            alt="FroyMon"
+          />
+      <img
+            className="mx-auto h-21 w-auto"
+            src="./thankyou.jpeg"
+            alt="FroyMon"
+          />
+      <h2 className="mt-5 mb-5 text-center text-3xl font-bold leading-9 tracking-tight text-black">
+            Thank You for Submitting!
+          </h2>
+
+          <Button 
+            className='flex w-full justify-center'
+            placeholder={undefined} 
+            onClick={handleLogout}            
+          >
+            Logout
+          </Button>
+      </div>
+  </div>
+    </>
+  )
+}
+
 export default function User() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -158,14 +221,14 @@ export default function User() {
     setTimeout(() => {
       QRsetVal(decodedText);
       setLoading(false); 
-    }, 3000);
+    }, 2000);
   };
 
   const handleLogout = () => {
     setloggingout(true); 
     setTimeout(() => {
       signOut({callbackUrl: '/'});
-    }, 3000);
+    }, 2000);
   };
 
   if (QRval) {
