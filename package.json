@@ -1,0 +1,50 @@
+{
+  "name": "froymonjsversion",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.7",
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-brands-svg-icons": "^6.5.2",
+    "@fortawesome/free-regular-svg-icons": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@heroicons/react": "^2.1.3",
+    "@material-tailwind/react": "^2.1.9",
+    "axios": "^1.7.3",
+    "chart.js": "^4.4.3",
+    "firebase": "^10.10.0",
+    "firebase-admin": "^12.4.0",
+    "html2canvas": "^1.4.1",
+    "html5-qrcode": "^2.3.8",
+    "js-cookie": "^3.0.5",
+    "next": "14.1.4",
+    "next-auth": "^4.24.7",
+    "react": "^18",
+    "react-calendar": "^5.0.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-dom": "^18",
+    "react-firebase-hooks": "^5.1.1",
+    "react-html5-qrcode-reader": "^1.1.1",
+    "react-icons": "^5.3.0",
+    "react-qr-code": "^2.0.12",
+    "react-toastify": "^10.0.5",
+    "recoil": "^0.7.7"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
+    "@types/react": "18.2.75",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "webpack": "^5.91.0"
+  }
+}

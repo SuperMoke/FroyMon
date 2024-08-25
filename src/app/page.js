@@ -1,0 +1,135 @@
+"use client";
+import React, { useState, useEffect } from "react";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  Button,
+  Card,
+  Input,
+  Typography,
+  Spinner,
+  Alert,
+  IconButton,
+} from "@material-tailwind/react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { auth } from "../app/firebase";
+import { isAuthenticated } from "../app/utils/auth";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+
+export default function SigninPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  const handleSignIn = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const auth = getAuth();
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      const roleMap = {
+        Student: "/user",
+        Teacher: "/teacher",
+        Admin: "/admin",
+      };
+      for (const role of Object.keys(roleMap)) {
+        const hasRole = await isAuthenticated(role);
+        if (hasRole) {
+          router.push(roleMap[role]);
+          return;
+        }
+      }
+      console.error("User does not have a valid role");
+      
+    } catch (error) {
+      console.error("Error signing in:", error);
+      setError("Invalid email or password. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-96 p-6">
+        <div className="flex justify-center">
+          <Image
+            src="/froymon_logo.png"
+            width={200}
+            height={200}
+            alt="Logo Picture"
+          />
+        </div>
+        <Typography variant="h4" className="mb-6 mt-4 text-center text-black">
+          Sign in to your account
+        </Typography>
+        <form onSubmit={handleSignIn}>
+          {error && (
+            <Alert color="red" className="mb-4">
+              {error}
+            </Alert>
+          )}
+          <div className="mb-4">
+            <h2 className="text-black text-sm font-normal mb-2">Email:</h2>
+            <Input
+              type="email"
+              label="Enter Your Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <h2 className="text-black text-sm font-normal mb-2">Password:</h2>
+            <div className="relative flex w-full max-w-[24rem]">
+              <Input
+                type={showPassword ? "text" : "password"}
+                label="Enter Your Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="pr-20"
+                containerProps={{
+                  className: "min-w-0",
+                }}
+              />
+              <IconButton
+                variant="text"
+                size="sm"
+                className="!absolute right-1 top-1 rounded"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon className="h-5 w-5" />
+                ) : (
+                  <EyeIcon className="h-5 w-5" />
+                )}
+              </IconButton>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            {isLoading ? (
+              <Spinner color="black" size="lg" /> // Increase the size of the spinner
+            ) : (
+              <Button type="submit" color="black" fullWidth>
+                Sign In
+              </Button>
+            )}
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}
