@@ -359,6 +359,7 @@ const Admin_CreateUser = () => {
               onChange={(e) => setRole(e)}
               required
             >
+              <Option value="Admin">Admin</Option>
               <Option value="Student">Student</Option>
               <Option value="Teacher">Teacher</Option>
             </Select>
