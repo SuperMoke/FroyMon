@@ -148,6 +148,7 @@ export default function Audit_Trails() {
         unsubscribeTeacher();
         unsubscribeStudent();
         unsubscribeTicketQuery();
+        unsubscribeAccountQuery();
       };
     };
 
