@@ -13,10 +13,23 @@ if (!getApps().length) {
   });
 }
 
+const formatTime = (hours, minutes) => {
+    const ampm = hours >= 12 ? "PM" : "AM";
+    let formattedHours = hours % 12;
+    formattedHours = formattedHours ? formattedHours : 12;
+    const formattedMinutes = minutes.toString().padStart(2, "0");
+    return `${formattedHours}:${formattedMinutes} ${ampm}`;
+  };
+
 export async function POST(request) {
   try {
     const { email, password, role, name } = await request.json();
     const auth = getAuth();
+    const currentTime = new Date();
+    const hours = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const formattedDate = currentTime.toISOString().split("T")[0];
+    const formattedTime = formatTime(hours, minutes);
     
     const userRecord = await auth.createUser({
       email,
@@ -29,7 +42,9 @@ export async function POST(request) {
       name,
       email,
       role,
-      id: userRecord.uid
+      id: userRecord.uid,
+      date:  formattedDate,
+      time: formattedTime,
     });
 
     return NextResponse.json({ message: 'User created successfully', uid: userRecord.uid }, { status: 200 });
