@@ -1,6 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 
 import { Button, Typography, Card } from "@material-tailwind/react";
 import Link from "next/link";
