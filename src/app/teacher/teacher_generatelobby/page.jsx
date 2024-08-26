@@ -52,6 +52,7 @@ export default function Generatelobby() {
   const [pin, setPin] = useState(null);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   const [computerLab, setComputerLab] = useRecoilState(ComputerLabState);
 
@@ -98,8 +99,6 @@ export default function Generatelobby() {
     };
     fetchUserData();
   }, [user]);
-
-  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -444,7 +443,6 @@ export default function Generatelobby() {
                   </Typography>
                   <Button
                     onClick={() => {
-                      endSession();
                       router.push("/teacher");
                     }}
                     color="blue"
