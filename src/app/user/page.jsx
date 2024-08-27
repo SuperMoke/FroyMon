@@ -26,6 +26,7 @@ import {
   getDocs,
   where,
   onSnapshot,
+  getFirestore,
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
@@ -130,7 +131,7 @@ export default function UserPage() {
     try {
       const db = getFirestore();
       const activitiesRef = collection(db, "studententries");
-      const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split("T")[0];
       const q = query(
         activitiesRef,
         where("ccaEmail", "==", userEmail),
