@@ -423,7 +423,7 @@ export default function Generatelobby() {
                       fullWidth
                       className="mt-4"
                     >
-                      End Session
+                      Saved Session
                     </Button>
                   </Card>
                 </div>
@@ -439,7 +439,7 @@ export default function Generatelobby() {
                     className="mx-auto rounded-full shadow-md"
                   />
                   <Typography variant="h5" color="blue-gray">
-                    Session Ended Successfully!
+                    Save the Session Successfully
                   </Typography>
                   <Button
                     onClick={() => {
