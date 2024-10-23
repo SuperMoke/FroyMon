@@ -38,7 +38,6 @@ import {
   FaComment,
 } from "react-icons/fa";
 import RemarksSection from "./RemarksSection";
-
 export default function ComputerTicket() {
   const TABLE_HEAD = [
     "Computer Lab",
@@ -48,7 +47,6 @@ export default function ComputerTicket() {
     "Student Name",
     "Ticket Status",
     "Remarks",
-    "Action",
   ];
   const [ticketData, setTicketData] = useState([]);
   const [filteredTicketData, setFilteredTicketData] = useState([]);
@@ -61,61 +59,6 @@ export default function ComputerTicket() {
   const [filterComputerStatus, setFilterComputerStatus] = useState("");
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
-  const [editingTicketId, setEditingTicketId] = useState(null);
-  const [remarks, setRemarks] = useState({});
-  const [isRemarksOpen, setIsRemarksOpen] = useState({});
-  const [actionMode, setActionMode] = useState({});
-
-  const generateRandomTicketData = () => {
-    const computerLabs = [
-      "CLAB1",
-      "CLAB2",
-      "CLAB3",
-      "CLAB4",
-      "CLAB5",
-      "CLAB6",
-      "CiscoLab",
-      "AccountingLab",
-      "HardwareLab",
-      "ContactCenterLab",
-    ];
-    const computerStatuses = [
-      "Hardware Issues",
-      "Software Issues",
-      "Network Problems",
-    ];
-    const ticketStatuses = ["Pending", "Open", "On-Going", "Closed"];
-    const studentNames = [
-      "John Doe",
-      "Jane Smith",
-      "Alice Johnson",
-      "Bob Brown",
-      "Charlie Davis",
-    ];
-
-    const randomDate = new Date().toISOString().split("T")[0];
-
-    const randomTicketData = [];
-    for (let i = 0; i < 10; i++) {
-      randomTicketData.push({
-        id: `ticket-${i}`,
-        computerLab:
-          computerLabs[Math.floor(Math.random() * computerLabs.length)],
-        computerNumber: `C${Math.floor(Math.random() * 50) + 1}`,
-        computerStatus:
-          computerStatuses[Math.floor(Math.random() * computerStatuses.length)],
-        description: `Issue description for computer ${i + 1}`,
-        studentName:
-          studentNames[Math.floor(Math.random() * studentNames.length)],
-        ticketStatus:
-          ticketStatuses[Math.floor(Math.random() * ticketStatuses.length)],
-        remarks: `Remarks for ticket ${i + 1}`,
-        date: randomDate,
-      });
-    }
-
-    return randomTicketData;
-  };
 
   useEffect(() => {
     if (loading) return;
@@ -125,7 +68,7 @@ export default function ComputerTicket() {
       return;
     }
     const checkAuth = async () => {
-      const authorized = await isAuthenticated("Admin");
+      const authorized = await isAuthenticated("Teacher");
       setIsAuthorized(authorized);
     };
     checkAuth();
@@ -154,7 +97,7 @@ export default function ComputerTicket() {
   useEffect(() => {
     const filtered = ticketData.filter((ticket) => {
       return (
-        String(ticket.computerNumber).includes(searchComputerNumber) &&
+        ticket.computerNumber.includes(searchComputerNumber) &&
         (filterComputerLab === "" ||
           ticket.computerLab === filterComputerLab) &&
         (filterComputerStatus === "" ||
@@ -168,83 +111,6 @@ export default function ComputerTicket() {
     filterComputerStatus,
     ticketData,
   ]);
-
-  const updateTicketStatus = async (ticketId, status) => {
-    try {
-      const ticketRef = doc(db, "ticketentries", ticketId);
-      await updateDoc(ticketRef, {
-        ticketStatus: status,
-      });
-      console.log("Ticket status updated successfully");
-    } catch (error) {
-      console.error("Error updating ticket status: ", error);
-    }
-  };
-
-  const updateTicketRemarks = async (ticketId, remark) => {
-    try {
-      const ticketRef = doc(db, "ticketentries", ticketId);
-      await updateDoc(ticketRef, {
-        remarks: remark,
-      });
-      console.log("Ticket remarks updated successfully");
-    } catch (error) {
-      console.error("Error updating ticket remarks: ", error);
-    }
-  };
-
-  const TicketStatusList = ({ ticket }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const handleStatusChange = async (status) => {
-      await updateTicketStatus(ticket.id, status);
-      setIsMenuOpen(false);
-      setEditingTicketId(null);
-      setActionMode((prev) => ({ ...prev, [ticket.id]: null }));
-    };
-
-    const isEditing = actionMode[ticket.id] === "status";
-
-    return (
-      <List>
-        <Menu
-          open={isMenuOpen}
-          handler={setIsMenuOpen}
-          placement="bottom-start"
-        >
-          <MenuHandler>
-            <ListItem
-              className="focus:bg-blue-gray-50 hover:bg-blue-gray-50 cursor-pointer"
-              onClick={() => {
-                if (ticket.ticketStatus !== "Closed") {
-                  setIsMenuOpen((prev) => !prev);
-                }
-              }}
-              disabled={ticket.ticketStatus === "Closed"}
-            >
-              <ListItemPrefix>
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-normal"
-                >
-                  {ticket.ticketStatus || "Select Status"}
-                </Typography>
-              </ListItemPrefix>
-              <FaChevronDown className="h-3 w-3 ml-auto" />
-            </ListItem>
-          </MenuHandler>
-          <MenuList>
-            {["Pending", "Open", "On-Going", "Closed"].map((status) => (
-              <MenuItem key={status} onClick={() => handleStatusChange(status)}>
-                {status}
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Menu>
-      </List>
-    );
-  };
 
   return isAuthorized ? (
     <>
@@ -393,9 +259,7 @@ export default function ComputerTicket() {
                               {ticket.studentName}
                             </Typography>
                           </td>
-                          <td className="p-4">
-                            <TicketStatusList ticket={ticket} />
-                          </td>
+                          <td className="p-4">{ticket.ticketStatus}</td>
                           <td className="p-4">
                             <Typography
                               variant="small"
@@ -404,13 +268,6 @@ export default function ComputerTicket() {
                             >
                               {ticket.remarks || "No Remarks"}
                             </Typography>
-                          </td>
-
-                          <td className="p-4">
-                            <RemarksSection
-                              ticket={ticket}
-                              updateTicketRemarks={updateTicketRemarks}
-                            />
                           </td>
                         </tr>
                       ))}

@@ -8,6 +8,7 @@ import {
   XMarkIcon,
   UserIcon,
   ComputerDesktopIcon,
+  DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { AiOutlineAudit } from "react-icons/ai";
@@ -55,8 +56,18 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                   className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
                   onClick={toggleSidebar}
                 >
-                  <ComputerDesktopIcon className="h-5 w-5" />
+                  <DocumentTextIcon className="h-5 w-5" />
                   <Typography>Computer Ticket</Typography>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/computer_report"
+                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  onClick={toggleSidebar}
+                >
+                  <AiOutlineAudit className="h-5 w-5" />
+                  <Typography>Computer Report</Typography>
                 </Link>
               </li>
               <li>

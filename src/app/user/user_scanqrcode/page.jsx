@@ -11,7 +11,6 @@ import {
   Option,
   Alert,
 } from "@material-tailwind/react";
-
 import Image from "next/image";
 import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -126,6 +125,7 @@ export default function QrScannerPage() {
           computerLab: formData.computerLab,
           timeIn: formattedTime,
           date: formattedDate,
+          ticketStatus: "Pending",
         });
         setActiveStep(2);
       }

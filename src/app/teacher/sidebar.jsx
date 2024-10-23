@@ -6,8 +6,13 @@ import {
   AcademicCapIcon,
   QrCodeIcon,
   XMarkIcon,
+  UserIcon,
+  ComputerDesktopIcon,
+  ListBulletIcon,
+  ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { AiOutlineAudit } from "react-icons/ai";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
   return (
@@ -38,7 +43,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/user"
+                  href="/teacher"
                   className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
                   onClick={toggleSidebar}
                 >
@@ -48,22 +53,32 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               </li>
               <li>
                 <Link
-                  href="/user/user_pickclassroom"
+                  href="/teacher/teacher_viewattendance"
                   className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
                   onClick={toggleSidebar}
                 >
-                  <AcademicCapIcon className="h-5 w-5" />
-                  <Typography>Pick A Classroom</Typography>
+                  <ListBulletIcon className="h-5 w-5" />
+                  <Typography>Attendance Form</Typography>
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/user/user_scanqrcode"
+                  href="/teacher/teacher_computerissue"
                   className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
                   onClick={toggleSidebar}
                 >
-                  <QrCodeIcon className="h-5 w-5" />
-                  <Typography>Scan QR Code</Typography>
+                  <ClipboardDocumentIcon className="h-5 w-5" />
+                  <Typography>Report Computer Issue</Typography>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/teacher/teacher_computertickets"
+                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  onClick={toggleSidebar}
+                >
+                  <ComputerDesktopIcon className="h-5 w-5" />
+                  <Typography>Computer Tickets</Typography>
                 </Link>
               </li>
             </ul>

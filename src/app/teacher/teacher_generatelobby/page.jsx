@@ -33,6 +33,7 @@ import { isAuthenticated } from "../../utils/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
 import Header from "../header";
 import { FaChalkboardTeacher, FaUsers, FaCheckCircle } from "react-icons/fa";
+import Sidebar from "../sidebar";
 
 function generateRandomPin() {
   return Math.floor(100000 + Math.random() * 900000);
@@ -284,175 +285,184 @@ export default function Generatelobby() {
 
   return isAuthorized ? (
     <>
-      <div className="bg-blue-gray-50 min-h-screen">
+      <div className="flex flex-col bg-blue-gray-50 min-h-screen">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <Card className="w-full max-w-5xl mx-auto shadow-lg p-8">
-            <div className="p-6">
-              <Stepper
-                activeStep={activeStep}
-                isLastStep={(value) => setIsLastStep(value)}
-                isFirstStep={(value) => setIsFirstStep(value)}
-                className="mb-8"
-              >
-                <Step onClick={() => setActiveStep(0)}>
-                  <FaChalkboardTeacher className="h-5 w-5" />
-                </Step>
-                <Step onClick={() => setActiveStep(1)}>
-                  <FaUsers className="h-5 w-5" />
-                </Step>
-                <Step onClick={() => setActiveStep(2)}>
-                  <FaCheckCircle className="h-5 w-5" />
-                </Step>
-              </Stepper>
+        <div className="flex flex-1">
+          <Sidebar />
+          <div className="flex-1 p-4 sm:ml-64">
+            <div className="container mx-auto px-4 py-8">
+              <Card className="w-full max-w-5xl mx-auto shadow-lg p-8">
+                <div className="p-6">
+                  <Stepper
+                    activeStep={activeStep}
+                    isLastStep={(value) => setIsLastStep(value)}
+                    isFirstStep={(value) => setIsFirstStep(value)}
+                    className="mb-8"
+                  >
+                    <Step onClick={() => setActiveStep(0)}>
+                      <FaChalkboardTeacher className="h-5 w-5" />
+                    </Step>
+                    <Step onClick={() => setActiveStep(1)}>
+                      <FaUsers className="h-5 w-5" />
+                    </Step>
+                    <Step onClick={() => setActiveStep(2)}>
+                      <FaCheckCircle className="h-5 w-5" />
+                    </Step>
+                  </Stepper>
 
-              {errorMessage && (
-                <Alert variant="outlined" color="red" className="mb-4">
-                  <span>{errorMessage}</span>
-                </Alert>
-              )}
+                  {errorMessage && (
+                    <Alert variant="outlined" color="red" className="mb-4">
+                      <span>{errorMessage}</span>
+                    </Alert>
+                  )}
 
-              {activeStep === 0 && (
-                <div className="space-y-4">
-                  <Typography variant="h5" className="text-center">
-                    Create a Lobby
-                  </Typography>
-                  <Card className="w-full max-w-2xl p-6 mx-auto">
+                  {activeStep === 0 && (
                     <div className="space-y-4">
-                      <Select
-                        label="Select Course"
-                        value={formData.course}
-                        onChange={(value) =>
-                          setFormData((prevData) => ({
-                            ...prevData,
-                            course: value,
-                          }))
-                        }
-                      >
-                        <Option value="CS">
-                          Bachelor of Science in Computer Science
-                        </Option>
-                        <Option value="IS">
-                          Bachelor of Science in Information System
-                        </Option>
-                        <Option value="BLIS">
-                          Bachelor of Library and Information Science
-                        </Option>
-                      </Select>
-                      <Input
-                        type="text"
-                        label="Enter The Class Section"
-                        name="classSection"
-                        value={formData.classSection}
-                        onChange={handleInputChange}
+                      <Typography variant="h5" className="text-center">
+                        Create a Lobby
+                      </Typography>
+                      <Card className="w-full max-w-2xl p-6 mx-auto">
+                        <div className="space-y-4">
+                          <Select
+                            label="Select Course"
+                            value={formData.course}
+                            onChange={(value) =>
+                              setFormData((prevData) => ({
+                                ...prevData,
+                                course: value,
+                              }))
+                            }
+                          >
+                            <Option value="CS">
+                              Bachelor of Science in Computer Science
+                            </Option>
+                            <Option value="IS">
+                              Bachelor of Science in Information System
+                            </Option>
+                            <Option value="BLIS">
+                              Bachelor of Library and Information Science
+                            </Option>
+                          </Select>
+                          <Input
+                            type="text"
+                            label="Enter The Class Section"
+                            name="classSection"
+                            value={formData.classSection}
+                            onChange={handleInputChange}
+                          />
+                          <Select
+                            label="Select Computer Laboratory"
+                            value={formData.computerLab}
+                            onChange={(value) =>
+                              setFormData((prevData) => ({
+                                ...prevData,
+                                computerLab: value,
+                              }))
+                            }
+                          >
+                            <Option value="CLAB1">Computer Laboratory 1</Option>
+                            <Option value="CLAB2">Computer Laboratory 2</Option>
+                            <Option value="CLAB3">Computer Laboratory 3</Option>
+                            <Option value="CLAB4">Computer Laboratory 4</Option>
+                            <Option value="CLAB5">Computer Laboratory 5</Option>
+                            <Option value="CLAB6">Computer Laboratory 6</Option>
+                            <Option value="CiscoLab">Cisco Laboratory</Option>
+                            <Option value="AccountingLab">
+                              Accounting Laboratory
+                            </Option>
+                            <Option value="HardwareLab">
+                              Hardware Laboratory
+                            </Option>
+                            <Option value="ContactCenterLab">
+                              Contact Center Laboratory
+                            </Option>
+                          </Select>
+                          <Button
+                            onClick={() => {
+                              saveFormDataToFirestore();
+                              setActiveStep(1);
+                            }}
+                            color="blue"
+                            fullWidth
+                          >
+                            Create Lobby
+                          </Button>
+                        </div>
+                      </Card>
+                    </div>
+                  )}
+
+                  {activeStep === 1 && (
+                    <div className="space-y-4">
+                      <Typography variant="h5" className="text-center">
+                        Lobby Information
+                      </Typography>
+                      <Card className="w-full max-w-2xl p-6 mx-auto">
+                        <Typography variant="h6" className="mb-2">
+                          Code Generated: {pin}
+                        </Typography>
+                        <Typography variant="h6" className="mb-4">
+                          Computer Lab: {computerLab}
+                        </Typography>
+                        <Typography variant="h6" className="mb-2">
+                          Student List:
+                        </Typography>
+                        <div className="max-h-64 overflow-y-auto">
+                          {students.map((student, index) => (
+                            <div key={index} className="flex items-center mb-2">
+                              <Image
+                                src={
+                                  profileUrls[student.ccaEmail] || "/Avatar.jpg"
+                                }
+                                width={40}
+                                height={40}
+                                alt="Student Avatar"
+                                className="rounded-full mr-2"
+                              />
+                              <Typography>{student.studentName}</Typography>
+                            </div>
+                          ))}
+                        </div>
+                        <Button
+                          onClick={() => {
+                            endSession(pin);
+                          }}
+                          color="blue"
+                          fullWidth
+                          className="mt-4"
+                        >
+                          Saved Session
+                        </Button>
+                      </Card>
+                    </div>
+                  )}
+
+                  {activeStep === 2 && (
+                    <div className="text-center space-y-6">
+                      <Image
+                        src="/thankyou.jpeg"
+                        width={200}
+                        height={200}
+                        alt="Thank You Picture"
+                        className="mx-auto rounded-full shadow-md"
                       />
-                      <Select
-                        label="Select Computer Laboratory"
-                        value={formData.computerLab}
-                        onChange={(value) =>
-                          setFormData((prevData) => ({
-                            ...prevData,
-                            computerLab: value,
-                          }))
-                        }
-                      >
-                        <Option value="CLAB1">Computer Laboratory 1</Option>
-                        <Option value="CLAB2">Computer Laboratory 2</Option>
-                        <Option value="CLAB3">Computer Laboratory 3</Option>
-                        <Option value="CLAB4">Computer Laboratory 4</Option>
-                        <Option value="CLAB5">Computer Laboratory 5</Option>
-                        <Option value="CLAB6">Computer Laboratory 6</Option>
-                        <Option value="CiscoLab">Cisco Laboratory</Option>
-                        <Option value="AccountingLab">
-                          Accounting Laboratory
-                        </Option>
-                        <Option value="HardwareLab">Hardware Laboratory</Option>
-                        <Option value="ContactCenterLab">
-                          Contact Center Laboratory
-                        </Option>
-                      </Select>
+                      <Typography variant="h5" color="blue-gray">
+                        Save the Session Successfully
+                      </Typography>
                       <Button
                         onClick={() => {
-                          saveFormDataToFirestore();
-                          setActiveStep(1);
+                          router.push("/teacher");
                         }}
                         color="blue"
-                        fullWidth
                       >
-                        Create Lobby
+                        Return to Teacher Homepage
                       </Button>
                     </div>
-                  </Card>
+                  )}
                 </div>
-              )}
-
-              {activeStep === 1 && (
-                <div className="space-y-4">
-                  <Typography variant="h5" className="text-center">
-                    Lobby Information
-                  </Typography>
-                  <Card className="w-full max-w-2xl p-6 mx-auto">
-                    <Typography variant="h6" className="mb-2">
-                      Code Generated: {pin}
-                    </Typography>
-                    <Typography variant="h6" className="mb-4">
-                      Computer Lab: {computerLab}
-                    </Typography>
-                    <Typography variant="h6" className="mb-2">
-                      Student List:
-                    </Typography>
-                    <div className="max-h-64 overflow-y-auto">
-                      {students.map((student, index) => (
-                        <div key={index} className="flex items-center mb-2">
-                          <Image
-                            src={profileUrls[student.ccaEmail] || "/Avatar.jpg"}
-                            width={40}
-                            height={40}
-                            alt="Student Avatar"
-                            className="rounded-full mr-2"
-                          />
-                          <Typography>{student.studentName}</Typography>
-                        </div>
-                      ))}
-                    </div>
-                    <Button
-                      onClick={() => {
-                        endSession(pin);
-                      }}
-                      color="blue"
-                      fullWidth
-                      className="mt-4"
-                    >
-                      Saved Session
-                    </Button>
-                  </Card>
-                </div>
-              )}
-
-              {activeStep === 2 && (
-                <div className="text-center space-y-6">
-                  <Image
-                    src="/thankyou.jpeg"
-                    width={200}
-                    height={200}
-                    alt="Thank You Picture"
-                    className="mx-auto rounded-full shadow-md"
-                  />
-                  <Typography variant="h5" color="blue-gray">
-                    Save the Session Successfully
-                  </Typography>
-                  <Button
-                    onClick={() => {
-                      router.push("/teacher");
-                    }}
-                    color="blue"
-                  >
-                    Return to Teacher Homepage
-                  </Button>
-                </div>
-              )}
+              </Card>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </>

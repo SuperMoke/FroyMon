@@ -8,6 +8,7 @@ import { isAuthenticated } from "../../utils/auth";
 import Header from "../header";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { FaSearch, FaCalendarAlt } from "react-icons/fa";
+import Sidebar from "../sidebar";
 
 export default function ViewAttendance() {
   const TABLE_HEAD = [
@@ -232,46 +233,56 @@ export default function ViewAttendance() {
 
   return isAuthorized ? (
     <>
-      <div className="bg-blue-gray-50 min-h-screen">
+      <div className="flex flex-col bg-blue-gray-50 min-h-screen">
         <Header />
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            <Typography variant="h3" color="blue-gray" className="mb-4 md:mb-0">
-              Attendance Records
-            </Typography>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="relative">
-                <Input
-                  type="text"
-                  placeholder="Search students..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10"
-                />
-                <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
+        <div className="flex flex-1">
+          <Sidebar />
+          <div className="flex-1 p-4 sm:ml-64">
+            <div className="container mx-auto px-4 py-8">
+              <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+                <Typography
+                  variant="h3"
+                  color="blue-gray"
+                  className="mb-4 md:mb-0"
+                >
+                  Attendance Records
+                </Typography>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Search students..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pr-10"
+                    />
+                    <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
+                  </div>
+                  <div className="relative">
+                    <Input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="pr-10"
+                    />
+                    <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
+                  </div>
+                </div>
               </div>
-              <div className="relative">
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="pr-10"
-                />
-                <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
-              </div>
+              {Object.entries(filteredAttendanceData).length > 0 ? (
+                Object.entries(filteredAttendanceData).map(
+                  ([section, students]) =>
+                    renderTable(students, `Section ${section}`)
+                )
+              ) : (
+                <Card className="w-full mx-auto p-6 text-center">
+                  <Typography variant="h5" color="blue-gray">
+                    No attendance records found for the selected criteria.
+                  </Typography>
+                </Card>
+              )}
             </div>
           </div>
-          {Object.entries(filteredAttendanceData).length > 0 ? (
-            Object.entries(filteredAttendanceData).map(([section, students]) =>
-              renderTable(students, `Section ${section}`)
-            )
-          ) : (
-            <Card className="w-full mx-auto p-6 text-center">
-              <Typography variant="h5" color="blue-gray">
-                No attendance records found for the selected criteria.
-              </Typography>
-            </Card>
-          )}
         </div>
       </div>
     </>

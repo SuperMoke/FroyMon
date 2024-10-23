@@ -195,12 +195,13 @@ export default function TeacherPage() {
   );
 
   return isAuthorized ? (
-    <div className="flex bg-blue-gray-50 min-h-screen">
-      <div className="flex-1 ">
-        <Header />
-        <main className="p-8">
+    <div className="flex flex-col bg-blue-gray-50 min-h-screen">
+      <Header />
+      <div className="flex flex-1 ">
+        <Sidebar />
+        <main className="flex-1 p-4 sm:ml-64">
           <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-8 mt-5">
               <CardSection
                 title="Create A Virtual Class"
                 icon={<UserGroupIcon className="h-6 w-6 text-purple-500" />}
@@ -215,25 +216,6 @@ export default function TeacherPage() {
                   color="purple"
                 >
                   Generate Classroom
-                </ActionButton>
-              </CardSection>
-
-              <CardSection
-                title="View Attendance Form"
-                icon={
-                  <ClipboardDocumentCheckIcon className="h-6 w-6 text-orange-500" />
-                }
-                color="border-l-orange-500"
-              >
-                <Typography className="mb-4 text-gray-700">
-                  View the attendance form for your students.
-                </Typography>
-                <ActionButton
-                  href="teacher/teacher_viewattendance"
-                  icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
-                  color="orange"
-                >
-                  View Form
                 </ActionButton>
               </CardSection>
 
