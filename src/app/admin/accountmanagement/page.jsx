@@ -157,25 +157,37 @@ const Admin_CreateUser = () => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const students = XLSX.utils.sheet_to_json(firstSheet);
+      const users = XLSX.utils.sheet_to_json(firstSheet);
 
-      for (const student of students) {
+      for (const user of users) {
         try {
+          let defaultPassword;
+          switch (user.role?.toLowerCase()) {
+            case "teacher":
+              defaultPassword = "teacher123";
+              break;
+            case "admin":
+              defaultPassword = "admin123";
+              break;
+            default:
+              defaultPassword = "student123";
+          }
+
           await fetch("/api/createUser", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              email: student.email,
-              password: "student123",
-              role: "Student",
-              name: student.name,
+              email: user.email,
+              password: defaultPassword,
+              role: user.role || "Student",
+              name: user.name,
             }),
           });
         } catch (error) {
-          console.error(`Error creating user ${student.email}:`, error);
-          toast.error(`Failed to create user ${student.email}`);
+          console.error(`Error creating user ${user.email}:`, error);
+          toast.error(`Failed to create user ${user.email}`);
         }
       }
       toast.success("Bulk upload completed!");
@@ -184,30 +196,41 @@ const Admin_CreateUser = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleCsvUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleCsvUpload = (file) => {
     Papa.parse(file, {
       header: true,
       complete: async (results) => {
-        const students = results.data;
+        const users = results.data;
 
-        for (const student of students) {
+        for (const user of users) {
           try {
+            let defaultPassword;
+            switch (user.role?.toLowerCase()) {
+              case "teacher":
+                defaultPassword = "teacher123";
+                break;
+              case "admin":
+                defaultPassword = "admin123";
+                break;
+              default:
+                defaultPassword = "student123";
+            }
+
             await fetch("/api/createUser", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                email: student.email,
-                password: "student123",
-                role: "Student",
-                name: student.name,
+                email: user.email,
+                password: defaultPassword,
+                role: user.role || "Student",
+                name: user.name,
               }),
             });
           } catch (error) {
-            console.error(`Error creating user ${student.email}:`, error);
-            toast.error(`Failed to create user ${student.email}`);
+            console.error(`Error creating user ${user.email}:`, error);
+            toast.error(`Failed to create user ${user.email}`);
           }
         }
         toast.success("Bulk upload completed!");
@@ -571,7 +594,8 @@ const Admin_CreateUser = () => {
         <DialogBody>
           <Typography color="gray" className="mb-4">
             Upload a CSV and Excel file with details. It should have columns for
-            "name" and "email".
+            Name,Email and Role.The role values should be: Student, Teacher, or
+            Admin (case insensitive)
           </Typography>
           <Input
             type="file"
