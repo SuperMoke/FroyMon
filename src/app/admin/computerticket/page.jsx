@@ -24,6 +24,11 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  orderBy,
+  getDocs,
+  addDoc,
+  getDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 import { useRouter } from "next/navigation";
@@ -38,9 +43,11 @@ import {
   FaComment,
 } from "react-icons/fa";
 import RemarksSection from "./RemarksSection";
+import HistoryModal from "./HistoryModal";
 
 export default function ComputerTicket() {
   const TABLE_HEAD = [
+    "Date and Time",
     "Computer Lab",
     "Computer Number",
     "Computer Status",
@@ -49,6 +56,7 @@ export default function ComputerTicket() {
     "Ticket Status",
     "Remarks",
     "Action",
+    "History",
   ];
   const [ticketData, setTicketData] = useState([]);
   const [filteredTicketData, setFilteredTicketData] = useState([]);
@@ -65,6 +73,8 @@ export default function ComputerTicket() {
   const [remarks, setRemarks] = useState({});
   const [isRemarksOpen, setIsRemarksOpen] = useState({});
   const [actionMode, setActionMode] = useState({});
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [selectedTicketHistory, setSelectedTicketHistory] = useState([]);
 
   const generateRandomTicketData = () => {
     const computerLabs = [
@@ -117,6 +127,24 @@ export default function ComputerTicket() {
     return randomTicketData;
   };
 
+  // Add this index configuration to your Firestore
+  const fetchTicketHistory = async (ticketId) => {
+    const q = query(
+      collection(db, "ticketHistory"),
+      where("ticketId", "==", ticketId),
+      orderBy("timestamp", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map((doc) => doc.data());
+  };
+
+  const handleViewHistory = async (ticketId) => {
+    const history = await fetchTicketHistory(ticketId);
+    setSelectedTicketHistory(history);
+    setIsHistoryOpen(true);
+  };
+
   useEffect(() => {
     if (loading) return;
     if (!user) {
@@ -151,6 +179,27 @@ export default function ComputerTicket() {
     return () => unsubscribe();
   }, [isAuthorized, selectedDate]);
 
+  const saveTicketHistory = async (
+    ticketId,
+    action,
+    oldValue,
+    newValue,
+    userId
+  ) => {
+    try {
+      await addDoc(collection(db, "ticketHistory"), {
+        ticketId,
+        action,
+        oldValue,
+        newValue,
+        userId,
+        timestamp: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Error saving history:", error);
+    }
+  };
+
   useEffect(() => {
     const filtered = ticketData.filter((ticket) => {
       return (
@@ -169,12 +218,22 @@ export default function ComputerTicket() {
     ticketData,
   ]);
 
-  const updateTicketStatus = async (ticketId, status) => {
+  const updateTicketStatus = async (ticketId, newStatus) => {
     try {
       const ticketRef = doc(db, "ticketentries", ticketId);
+      const ticketSnap = await getDoc(ticketRef);
+      const oldStatus = ticketSnap.data().ticketStatus;
       await updateDoc(ticketRef, {
-        ticketStatus: status,
+        ticketStatus: newStatus,
       });
+
+      await saveTicketHistory(
+        ticketId,
+        "Status Change",
+        oldStatus,
+        newStatus,
+        user.email
+      );
       console.log("Ticket status updated successfully");
     } catch (error) {
       console.error("Error updating ticket status: ", error);
@@ -354,6 +413,15 @@ export default function ComputerTicket() {
                               color="blue-gray"
                               className="font-normal text-center"
                             >
+                              {ticket.date} & {ticket.timeIn}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal text-center"
+                            >
                               {ticket.computerLab}
                             </Typography>
                           </td>
@@ -410,7 +478,17 @@ export default function ComputerTicket() {
                             <RemarksSection
                               ticket={ticket}
                               updateTicketRemarks={updateTicketRemarks}
+                              user={user}
                             />
+                          </td>
+                          <td className="p-4">
+                            <Button
+                              variant="text"
+                              color="blue"
+                              onClick={() => handleViewHistory(ticket.id)}
+                            >
+                              View History
+                            </Button>
                           </td>
                         </tr>
                       ))}
@@ -419,6 +497,11 @@ export default function ComputerTicket() {
                 </div>
               </Card>
             </div>
+            <HistoryModal
+              open={isHistoryOpen}
+              handleOpen={() => setIsHistoryOpen(!isHistoryOpen)}
+              history={selectedTicketHistory}
+            />
           </main>
         </div>
       </div>

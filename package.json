@@ -29,6 +29,7 @@
     "js-cookie": "^3.0.5",
     "next": "14.1.4",
     "next-auth": "^4.24.7",
+    "papaparse": "^5.4.1",
     "react": "^18",
     "react-apexcharts": "^1.4.1",
     "react-calendar": "^5.0.0",
@@ -40,10 +41,12 @@
     "react-qr-code": "^2.0.12",
     "react-toastify": "^10.0.5",
     "recoil": "^0.7.7",
-    "survey-analytics": "^1.12.6"
+    "survey-analytics": "^1.12.6",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
+    "@types/papaparse": "^5.3.15",
     "@types/react": "18.2.75",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",

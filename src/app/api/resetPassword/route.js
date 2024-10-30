@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
 
 if (!getApps().length) {
   initializeApp({
@@ -13,23 +12,17 @@ if (!getApps().length) {
   });
 }
 
-export async function DELETE(request) {
+export async function POST(request) {
   try {
-    const { uid } = await request.json();
+    const { uid, newPassword } = await request.json();
     const auth = getAuth();
 
-    await auth.deleteUser(uid);
-
-    const db = getFirestore();
-    const userQuery = await db.collection("user").where("id", "==", uid).get();
-
-    if (!userQuery.empty) {
-      const userDoc = userQuery.docs[0];
-      await userDoc.ref.delete();
-    }
+    await auth.updateUser(uid, {
+      password: newPassword,
+    });
 
     return NextResponse.json(
-      { message: "User deleted successfully" },
+      { message: "Password reset successfully" },
       { status: 200 }
     );
   } catch (error) {

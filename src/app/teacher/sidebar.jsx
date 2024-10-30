@@ -81,6 +81,16 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                   <Typography>Computer Tickets</Typography>
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/teacher/teacher_accountmanagement"
+                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  onClick={toggleSidebar}
+                >
+                  <UserIcon className="h-5 w-5" />
+                  <Typography>Account Management</Typography>
+                </Link>
+              </li>
             </ul>
           </nav>
         </aside>

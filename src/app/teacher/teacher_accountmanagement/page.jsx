@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Avatar,
   Button,
@@ -44,8 +44,6 @@ import { FaSearch } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Papa from "papaparse"; // You'll need to install this package
-import * as XLSX from "xlsx";
 
 const Admin_CreateUser = () => {
   const [email, setEmail] = useState("");
@@ -60,8 +58,6 @@ const Admin_CreateUser = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
-  const [openBulkDialog, setOpenBulkDialog] = useState(false);
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (loading) return;
@@ -71,7 +67,7 @@ const Admin_CreateUser = () => {
       return;
     }
     const checkAuth = async () => {
-      const authorized = await isAuthenticated("Admin");
+      const authorized = await isAuthenticated("Teacher");
       setIsAuthorized(authorized);
     };
     checkAuth();
@@ -139,81 +135,6 @@ const Admin_CreateUser = () => {
       console.error("Error creating user:", error.message);
       toast.error("Error creating user!");
     }
-  };
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    const fileExtension = file.name.split(".").pop().toLowerCase();
-
-    if (fileExtension === "csv") {
-      handleCsvUpload(file);
-    } else if (["xlsx", "xls"].includes(fileExtension)) {
-      handleExcelUpload(file);
-    }
-  };
-
-  const handleExcelUpload = async (file) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const students = XLSX.utils.sheet_to_json(firstSheet);
-
-      for (const student of students) {
-        try {
-          await fetch("/api/createUser", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: student.email,
-              password: "student123",
-              role: "Student",
-              name: student.name,
-            }),
-          });
-        } catch (error) {
-          console.error(`Error creating user ${student.email}:`, error);
-          toast.error(`Failed to create user ${student.email}`);
-        }
-      }
-      toast.success("Bulk upload completed!");
-      setOpenBulkDialog(false);
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const handleCsvUpload = async (e) => {
-    const file = e.target.files[0];
-    Papa.parse(file, {
-      header: true,
-      complete: async (results) => {
-        const students = results.data;
-
-        for (const student of students) {
-          try {
-            await fetch("/api/createUser", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                email: student.email,
-                password: "student123",
-                role: "Student",
-                name: student.name,
-              }),
-            });
-          } catch (error) {
-            console.error(`Error creating user ${student.email}:`, error);
-            toast.error(`Failed to create user ${student.email}`);
-          }
-        }
-        toast.success("Bulk upload completed!");
-        setOpenBulkDialog(false);
-      },
-    });
   };
 
   const handleEditUser = (user) => {
@@ -304,8 +225,11 @@ const Admin_CreateUser = () => {
     }
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Modify the filteredUsers constant to only show students:
+  const filteredUsers = users.filter(
+    (user) =>
+      user.role === "Student" &&
+      user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return isAuthorized ? (
@@ -323,7 +247,7 @@ const Admin_CreateUser = () => {
               <div className="relative">
                 <Input
                   type="text"
-                  placeholder=""
+                  placeholder="Search students..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pr-10"
@@ -334,22 +258,14 @@ const Admin_CreateUser = () => {
             <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
               <div className="bg-blue-500 p-4 flex justify-between items-center">
                 <Button
-                  onClick={() => setOpenBulkDialog(true)}
-                  color="white"
-                  variant="filled"
-                  className="mr-2"
-                >
-                  Bulk Upload
-                </Button>
-                <Button
                   onClick={() => setOpenDialog(true)}
                   color="white"
                   variant="filled"
+                  className="ml-auto"
                 >
                   Create Account
                 </Button>
               </div>
-
               <div className="overflow-x-auto">
                 <table className="w-full table-auto">
                   <thead>
@@ -499,9 +415,7 @@ const Admin_CreateUser = () => {
               onChange={(e) => setRole(e)}
               required
             >
-              <Option value="Admin">Admin</Option>
               <Option value="Student">Student</Option>
-              <Option value="Teacher">Teacher</Option>
             </Select>
           </form>
         </DialogBody>
@@ -565,43 +479,6 @@ const Admin_CreateUser = () => {
           </Button>
         </DialogFooter>
       </Dialog>
-
-      <Dialog open={openBulkDialog} handler={setOpenBulkDialog}>
-        <DialogHeader>Bulk Upload Account</DialogHeader>
-        <DialogBody>
-          <Typography color="gray" className="mb-4">
-            Upload a CSV and Excel file with details. It should have columns for
-            "name" and "email".
-          </Typography>
-          <Input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={(e) => {
-              fileInputRef.current = e.target.files[0];
-            }}
-          />
-        </DialogBody>
-        <DialogFooter>
-          <Button
-            variant="text"
-            color="red"
-            onClick={() => setOpenBulkDialog(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            color="blue"
-            onClick={() => {
-              if (fileInputRef.current) {
-                handleFileUpload({ target: { files: [fileInputRef.current] } });
-              }
-            }}
-          >
-            Upload
-          </Button>
-        </DialogFooter>
-      </Dialog>
-
       <ToastContainer />
     </>
   ) : null;

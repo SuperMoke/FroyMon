@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 import { auth } from "../app/firebase";
 import { isAuthenticated } from "../app/utils/auth";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
@@ -52,10 +54,10 @@ export default function SigninPage() {
         }
       }
       console.error("User does not have a valid role");
-      
     } catch (error) {
       console.error("Error signing in:", error);
-      setError("Invalid email or password. Please try again.");
+
+      toast.error("Invalid email or password. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -76,11 +78,6 @@ export default function SigninPage() {
           Sign in to your account
         </Typography>
         <form onSubmit={handleSignIn}>
-          {error && (
-            <Alert color="red" className="mb-4">
-              {error}
-            </Alert>
-          )}
           <div className="mb-4">
             <h2 className="text-black text-sm font-normal mb-2">Email:</h2>
             <Input
@@ -130,6 +127,7 @@ export default function SigninPage() {
           </div>
         </form>
       </Card>
+      <ToastContainer />
     </div>
   );
 }

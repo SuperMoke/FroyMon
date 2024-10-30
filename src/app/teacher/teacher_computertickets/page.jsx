@@ -40,6 +40,7 @@ import {
 import RemarksSection from "./RemarksSection";
 export default function ComputerTicket() {
   const TABLE_HEAD = [
+    "Date and Time",
     "Computer Lab",
     "Computer Number",
     "Computer Status",
@@ -214,6 +215,15 @@ export default function ComputerTicket() {
                             index % 2 === 0 ? "bg-blue-gray-50/50" : ""
                           }
                         >
+                          <td className="p-4">
+                            <Typography
+                              variant="small"
+                              color="blue-gray"
+                              className="font-normal text-center"
+                            >
+                              {ticket.date} & {ticket.timeIn}
+                            </Typography>
+                          </td>
                           <td className="p-4">
                             <Typography
                               variant="small"

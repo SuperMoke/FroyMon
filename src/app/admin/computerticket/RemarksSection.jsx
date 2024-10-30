@@ -6,8 +6,10 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../../firebase";
 
-const RemarksSection = ({ ticket, updateTicketRemarks }) => {
+const RemarksSection = ({ ticket, updateTicketRemarks, user }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [remark, setRemark] = useState(ticket.remarks || "");
   const [prevRemark, setPrevRemark] = useState(ticket.remarks || "");
@@ -21,7 +23,34 @@ const RemarksSection = ({ ticket, updateTicketRemarks }) => {
     setRemark(e.target.value);
   };
 
+  const saveTicketHistory = async (
+    ticketId,
+    action,
+    oldValue,
+    newValue,
+    userId
+  ) => {
+    await addDoc(collection(db, "ticketHistory"), {
+      ticketId,
+      action,
+      oldValue,
+      newValue,
+      userId,
+      timestamp: serverTimestamp(),
+    });
+  };
+
   const handleSaveRemark = async () => {
+    // Save the history first
+    await saveTicketHistory(
+      ticket.id,
+      "Remarks Update",
+      prevRemark,
+      remark,
+      user.email
+    );
+
+    // Then update the remarks
     await updateTicketRemarks(ticket.id, remark);
     setIsEditing(false);
     setPrevRemark(remark);
