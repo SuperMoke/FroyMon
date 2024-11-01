@@ -32,6 +32,8 @@ import { auth } from "../../firebase";
 import { SiGoogleclassroom } from "react-icons/si";
 import { RiLockPasswordLine } from "react-icons/ri";
 import { FaCheckCircle } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function PickClassroom() {
   const [classrooms, setClassrooms] = useState([]);
@@ -88,6 +90,44 @@ export default function PickClassroom() {
     return unsubscribe;
   };
 
+  useEffect(() => {
+    if (selectedLab) {
+      const unsubscribe = onSnapshot(
+        query(
+          collection(db, "lobbies"),
+          where("computerLab", "==", selectedLab)
+        ),
+        async (snapshot) => {
+          if (snapshot.empty) {
+            // Lobby no longer exists
+            const currentTime = new Date();
+            const hours = currentTime.getHours();
+            const minutes = currentTime.getMinutes();
+            const formattedTime = formatTime(hours, minutes);
+
+            // Update timeOut for the student
+            const endsessionquery = query(
+              collection(db, "studententries"),
+              where("ccaEmail", "==", user.email)
+            );
+            const querySnapshot = await getDocs(endsessionquery);
+            if (!querySnapshot.empty) {
+              const docRef = querySnapshot.docs[0].ref;
+              await updateDoc(docRef, {
+                timeOut: formattedTime,
+              });
+            }
+
+            // Navigate to home
+            router.push("/user");
+          }
+        }
+      );
+
+      return () => unsubscribe();
+    }
+  }, [selectedLab]);
+
   const handleCardClick = (computerLab, teacherName) => {
     setSelectedLab(computerLab);
     setSelectedTeacher(teacherName);
@@ -111,7 +151,8 @@ export default function PickClassroom() {
         if (pinCode == correctPinCode) {
           if (!user || !user.email) {
             console.error("User object or user email is undefined");
-            setPinCodeError("User data not found. Please try again later.");
+            toast.error("User data not found. Please try again later.");
+
             return;
           }
 
@@ -143,17 +184,17 @@ export default function PickClassroom() {
             setActiveStep(2);
           } else {
             console.error("User data not found in the 'user' collection");
-            setPinCodeError("User data not found. Please try again later.");
+            toast.error("User data not found. Please try again later.");
           }
         } else {
-          setPinCodeError("Incorrect pin code. Please try again.");
+          toast.error("Incorrect pin code. Please try again.");
         }
       } else {
-        setPinCodeError("Pin code data not found for this computer lab.");
+        toast.error("Pin code data not found for this computer lab.");
       }
     } catch (error) {
       console.error("Error retrieving pin code: ", error);
-      setPinCodeError("Error retrieving pin code. Please try again later.");
+      toast.error("Error retrieving pin code. Please try again later.");
     }
   };
 
@@ -321,6 +362,7 @@ export default function PickClassroom() {
           </Card>
         </div>
       </div>
+      <ToastContainer />
     </>
   ) : null;
 }

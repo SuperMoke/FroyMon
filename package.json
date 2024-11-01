@@ -39,7 +39,7 @@
     "react-html5-qrcode-reader": "^1.1.1",
     "react-icons": "^5.3.0",
     "react-qr-code": "^2.0.12",
-    "react-toastify": "^10.0.5",
+    "react-toastify": "^10.0.6",
     "recoil": "^0.7.7",
     "survey-analytics": "^1.12.6",
     "xlsx": "^0.18.5"

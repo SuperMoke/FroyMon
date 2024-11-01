@@ -266,6 +266,7 @@ export default function Generatelobby() {
 
       // Commit the batch
       await batch.commit();
+      await deleteDoc(lobbyDoc.ref);
 
       console.log("Session ended successfully");
       localStorage.clear();

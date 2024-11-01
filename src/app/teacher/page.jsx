@@ -220,31 +220,6 @@ export default function TeacherPage() {
               </CardSection>
 
               <CardSection
-                title="Recent Activity"
-                icon={<ClockIcon className="h-6 w-6 text-blue-500" />}
-                color="border-l-blue-500"
-              >
-                <ul className="space-y-3">
-                  {userActivities.length > 0 ? (
-                    userActivities.map((activity, index) => (
-                      <li key={activity.id} className="flex items-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                        <span>Created class for {activity.classSection}</span>
-                        <span className="ml-auto text-sm text-gray-500">
-                          {activity.time}
-                        </span>
-                      </li>
-                    ))
-                  ) : (
-                    <li className="flex items-center">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
-                      <span>No recent activity</span>
-                    </li>
-                  )}
-                </ul>
-              </CardSection>
-
-              <CardSection
                 title="Announcements"
                 icon={<BellIcon className="h-6 w-6 text-yellow-500" />}
                 color="border-l-yellow-500"

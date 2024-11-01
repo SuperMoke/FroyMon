@@ -91,34 +91,27 @@ export default function ComputerReport() {
       const computerTicketCount = {};
 
       ticketData.forEach((ticket) => {
-        // Count tickets by lab
         labTickets[ticket.computerLab] =
           (labTickets[ticket.computerLab] || 0) + 1;
 
-        // Count ticket statuses
         statusDistribution[ticket.ticketStatus] =
           (statusDistribution[ticket.ticketStatus] || 0) + 1;
 
-        // Count computer issues
         computerIssues[ticket.computerStatus] =
           (computerIssues[ticket.computerStatus] || 0) + 1;
 
         let date;
         if (typeof ticket.date === "string") {
-          // If ticket.date is an ISO string
           date = format(parseISO(ticket.date), "yyyy-MM-dd");
         } else {
-          // If ticket.date is a timestamp
           date = format(new Date(ticket.date), "yyyy-MM-dd");
         }
         ticketsOverTime[date] = (ticketsOverTime[date] || 0) + 1;
 
-        // Count tickets per computer
         const key = `${ticket.computerNumber} (${ticket.computerLab})`;
         computerTicketCount[key] = (computerTicketCount[key] || 0) + 1;
       });
 
-      // Get top 5 problematic computers
       const topProblematicComputers = Object.entries(computerTicketCount)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5)
@@ -179,9 +172,9 @@ export default function ComputerReport() {
       },
       plotOptions: {
         pie: {
-          size: "80%", // Adjust the size for proper centering
+          size: "80%",
           donut: {
-            size: "75%", // For donut charts specifically
+            size: "75%",
           },
         },
       },
@@ -216,9 +209,9 @@ export default function ComputerReport() {
       },
       plotOptions: {
         pie: {
-          size: "80%", // Adjust the size for proper centering
+          size: "80%",
           donut: {
-            size: "75%", // For donut charts specifically
+            size: "75%",
           },
         },
       },

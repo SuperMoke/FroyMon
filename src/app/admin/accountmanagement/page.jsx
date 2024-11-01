@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Tooltip,
 } from "@material-tailwind/react";
 import { auth, db } from "../../firebase";
 import {
@@ -44,7 +45,7 @@ import { FaSearch } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import Papa from "papaparse"; // You'll need to install this package
+import Papa from "papaparse";
 import * as XLSX from "xlsx";
 
 const Admin_CreateUser = () => {
@@ -127,7 +128,7 @@ const Admin_CreateUser = () => {
         console.log("User created successfully:", data.uid);
         toast.success("User created successfully!");
         setOpenDialog(false);
-        // Reset form fields
+
         setEmail("");
         setPassword("");
         setRole("");
@@ -453,35 +454,40 @@ const Admin_CreateUser = () => {
                           </Typography>
                         </td>
                         <td className="p-4 flex justify-center space-x-2">
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <PencilIcon className="h-5 w-5" />
-                          </IconButton>
-
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() =>
-                              handleDeleteUser(user.id, user.email)
-                            }
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </IconButton>
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() =>
-                              handleResetPassword(user.id, user.role)
-                            }
-                          >
-                            <LockClosedIcon className="h-5 w-5" />
-                          </IconButton>
+                          <Tooltip content="Edit User">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <PencilIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Delete User">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() =>
+                                handleDeleteUser(user.id, user.email)
+                              }
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Reset Password">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() =>
+                                handleResetPassword(user.id, user.role)
+                              }
+                            >
+                              <LockClosedIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
                         </td>
                       </tr>
                     ))}
