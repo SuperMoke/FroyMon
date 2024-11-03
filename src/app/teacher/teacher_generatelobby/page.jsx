@@ -216,7 +216,6 @@ export default function Generatelobby() {
 
   const endSession = async (pin) => {
     try {
-      // Get the current user's UID
       const user = auth.currentUser;
       if (!user) {
         console.error("No user is currently logged in");
@@ -224,51 +223,44 @@ export default function Generatelobby() {
       }
       const teacherId = user.uid;
 
-      // Query to get the lobby document with the matching pin
-      const lobbyQuery = query(
-        collection(db, "lobbies"),
-        where("pin", "==", pin)
-      );
-      const lobbyQuerySnapshot = await getDocs(lobbyQuery);
+      // Get current time for timeout
+      const currentTime = new Date();
+      const hours = currentTime.getHours();
+      const minutes = currentTime.getMinutes();
+      const formattedTime = formatTime(hours, minutes);
+      const currentDate = new Date().toISOString().split("T")[0];
 
-      // Check if the lobby exists
-      if (lobbyQuerySnapshot.empty) {
-        console.error("Lobby does not exist");
-        return;
-      }
-
-      // Get the lobby document reference
-      const lobbyDoc = lobbyQuerySnapshot.docs[0];
-
-      // Query to get all student entries for the lobby
+      // Get all student entries for this lobby
       const studentEntriesQuery = query(
         collection(db, "studententries"),
         where("lobbypassword", "==", pin)
       );
       const studentEntriesSnap = await getDocs(studentEntriesQuery);
 
-      // Get current date
-      const currentDate = new Date().toISOString().split("T")[0];
-
-      // Move student entries to the teacherdata collection
       const batch = writeBatch(db);
       studentEntriesSnap.forEach((studentDoc) => {
         const studentData = studentDoc.data();
         const lobbyDataRef = doc(db, `lobbydata`, studentDoc.id);
-        // Include the classSection in the data being written
         batch.set(lobbyDataRef, {
           ...studentData,
           classSection: formData.classSection,
           date: currentDate,
           teacherId: teacherId,
+          timeOut: formattedTime, // Add timeout for all students
         });
       });
 
-      // Commit the batch
+      // Rest of your existing endSession code...
       await batch.commit();
+      const lobbyQuery = query(
+        collection(db, "lobbies"),
+        where("pin", "==", pin)
+      );
+      const lobbyQuerySnapshot = await getDocs(lobbyQuery);
+      const lobbyDoc = lobbyQuerySnapshot.docs[0];
       await deleteDoc(lobbyDoc.ref);
 
-      console.log("Session ended successfully");
+      console.log("Session ended successfully with timeouts recorded");
       localStorage.clear();
       setFormData({
         name: "",
