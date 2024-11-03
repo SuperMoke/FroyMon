@@ -136,13 +136,14 @@ export default function QrScannerPage() {
   };
 
   const handleEndSession = async () => {
-    router.push("/user");
+    router.push("/teacher");
   };
 
   const handleManualSubmit = () => {
     if (!formData.computerLab || !formData.computerNumber) {
       setErrorMessage("Please enter both Computer Lab and Computer Number");
       return;
+      Toas;
     }
     setActiveStep(1);
   };
@@ -163,13 +164,13 @@ export default function QrScannerPage() {
                     isFirstStep={(value) => setIsFirstStep(value)}
                     className="mb-8"
                   >
-                    <Step onClick={() => setActiveStep(0)}>
+                    <Step>
                       <FaQrcode className="h-5 w-5" />
                     </Step>
-                    <Step onClick={() => setActiveStep(1)}>
+                    <Step>
                       <FaKeyboard className="h-5 w-5" />
                     </Step>
-                    <Step onClick={() => setActiveStep(2)}>
+                    <Step>
                       <FaCheckCircle className="h-5 w-5" />
                     </Step>
                   </Stepper>
