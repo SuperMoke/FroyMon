@@ -263,9 +263,8 @@ export default function ViewAttendance() {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="pr-10"
+                      className="pr-5"
                     />
-                    <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
                   </div>
                 </div>
               </div>

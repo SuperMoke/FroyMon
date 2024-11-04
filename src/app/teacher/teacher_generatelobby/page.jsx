@@ -34,6 +34,8 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import Header from "../header";
 import { FaChalkboardTeacher, FaUsers, FaCheckCircle } from "react-icons/fa";
 import Sidebar from "../sidebar";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function generateRandomPin() {
   return Math.floor(100000 + Math.random() * 900000);
@@ -115,18 +117,76 @@ export default function Generatelobby() {
     checkAuth();
   }, [user, loading, router]);
 
+  // Add this new useEffect for checking active lobbies
+  useEffect(() => {
+    const checkActiveLobby = async () => {
+      const storedPin = localStorage.getItem("pin");
+      if (!storedPin) return;
+
+      const lobbiesRef = collection(db, "lobbies");
+      const lobbyQuery = query(lobbiesRef, where("pin", "==", storedPin));
+      const lobbySnapshot = await getDocs(lobbyQuery);
+
+      if (!lobbySnapshot.empty) {
+        const lobbyData = lobbySnapshot.docs[0].data();
+        setFormData({
+          name: lobbyData.name,
+          email: lobbyData.email,
+          course: lobbyData.course,
+          classSection: lobbyData.classSection,
+          computerLab: lobbyData.computerLab,
+        });
+        setPin(storedPin);
+        setFormSubmitted(true);
+        setComputerLab(lobbyData.computerLab);
+
+        // Store these values in localStorage
+        localStorage.setItem("course", lobbyData.course);
+        localStorage.setItem("classSection", lobbyData.classSection);
+        localStorage.setItem("computerLab", lobbyData.computerLab);
+
+        setActiveStep(1);
+      } else {
+        // If no active lobby, try to restore saved form data
+        const storedCourse = localStorage.getItem("course");
+        const storedClassSection = localStorage.getItem("classSection");
+        const storedComputerLab = localStorage.getItem("computerLab");
+
+        setFormData((prevData) => ({
+          ...prevData,
+          course: storedCourse || "",
+          classSection: storedClassSection || "",
+          computerLab: storedComputerLab || "",
+        }));
+      }
+    };
+
+    if (user) {
+      checkActiveLobby();
+    }
+  }, [user]);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedName = localStorage.getItem("name");
       const storedEmail = localStorage.getItem("email");
       const storedClassSection = localStorage.getItem("classSection");
       const storedComputerLab = localStorage.getItem("computerLab");
+      const storedCourse = localStorage.getItem("course");
+
+      const storedStudents = JSON.parse(
+        localStorage.getItem("students") || "[]"
+      );
+
       setFormData({
         name: storedName || "",
         email: storedEmail || "",
+        course: storedCourse || "",
+
         classSection: storedClassSection || "",
         computerLab: storedComputerLab || "",
       });
+      setStudents(storedStudents);
       setComputerLab(storedComputerLab);
       const storedFormSubmitted = localStorage.getItem("formSubmitted");
       if (storedFormSubmitted === "true") {
@@ -149,6 +209,7 @@ export default function Generatelobby() {
             emailList.push(data.ccaEmail);
           });
           setStudents(studentsData);
+          localStorage.setItem("students", JSON.stringify(studentsData));
           const userQuery = query(
             collection(db, "user"),
             where("email", "in", emailList)
@@ -177,6 +238,20 @@ export default function Generatelobby() {
   };
 
   const saveFormDataToFirestore = async () => {
+    const lobbiesRef = collection(db, "lobbies");
+    const labQuery = query(
+      lobbiesRef,
+      where("computerLab", "==", formData.computerLab)
+    );
+    const labSnapshot = await getDocs(labQuery);
+
+    if (!labSnapshot.empty) {
+      toast.error(
+        `${formData.computerLab} is currently in use. Please select a different laboratory.`
+      );
+      return false;
+    }
+
     const pin = formData.course + generateRandomPin();
     try {
       const currentTime = new Date();
@@ -209,8 +284,10 @@ export default function Generatelobby() {
         localStorage.setItem("pin", pin);
         setComputerLab(formData.computerLab);
       }
+      return true;
     } catch (error) {
       console.error("Error adding document: ", error);
+      return false;
     }
   };
 
@@ -262,6 +339,17 @@ export default function Generatelobby() {
 
       console.log("Session ended successfully with timeouts recorded");
       localStorage.clear();
+      // Clear all stored data
+      localStorage.removeItem("students");
+      localStorage.removeItem("name");
+      localStorage.removeItem("email");
+      localStorage.removeItem("classSection");
+      localStorage.removeItem("computerLab");
+      localStorage.removeItem("formSubmitted");
+      localStorage.removeItem("pin");
+
+      // Reset states
+      setStudents([]);
       setFormData({
         name: "",
         email: "",
@@ -274,6 +362,22 @@ export default function Generatelobby() {
     } catch (error) {
       console.error("Error ending session: ", error);
     }
+  };
+
+  const validateForm = () => {
+    if (!formData.course) {
+      toast.error("Please select a course");
+      return false;
+    }
+    if (!formData.classSection) {
+      toast.error("Please enter a class section");
+      return false;
+    }
+    if (!formData.computerLab) {
+      toast.error("Please select a computer laboratory");
+      return false;
+    }
+    return true;
   };
 
   return isAuthorized ? (
@@ -292,39 +396,34 @@ export default function Generatelobby() {
                     isFirstStep={(value) => setIsFirstStep(value)}
                     className="mb-8"
                   >
-                    <Step onClick={() => setActiveStep(0)}>
+                    <Step>
                       <FaChalkboardTeacher className="h-5 w-5" />
                     </Step>
-                    <Step onClick={() => setActiveStep(1)}>
+                    <Step>
                       <FaUsers className="h-5 w-5" />
                     </Step>
-                    <Step onClick={() => setActiveStep(2)}>
+                    <Step>
                       <FaCheckCircle className="h-5 w-5" />
                     </Step>
                   </Stepper>
 
-                  {errorMessage && (
-                    <Alert variant="outlined" color="red" className="mb-4">
-                      <span>{errorMessage}</span>
-                    </Alert>
-                  )}
-
                   {activeStep === 0 && (
                     <div className="space-y-4">
                       <Typography variant="h5" className="text-center">
-                        Create a Lobby
+                        Create a Classroom
                       </Typography>
                       <Card className="w-full max-w-2xl p-6 mx-auto">
                         <div className="space-y-4">
                           <Select
                             label="Select Course"
                             value={formData.course}
-                            onChange={(value) =>
+                            onChange={(value) => {
                               setFormData((prevData) => ({
                                 ...prevData,
                                 course: value,
-                              }))
-                            }
+                              }));
+                              localStorage.setItem("course", value);
+                            }}
                           >
                             <Option value="CS">
                               Bachelor of Science in Computer Science
@@ -338,20 +437,27 @@ export default function Generatelobby() {
                           </Select>
                           <Input
                             type="text"
-                            label="Enter The Class Section"
+                            label="Enter Class Section"
                             name="classSection"
                             value={formData.classSection}
-                            onChange={handleInputChange}
+                            onChange={(e) => {
+                              handleInputChange(e);
+                              localStorage.setItem(
+                                "classSection",
+                                e.target.value
+                              );
+                            }}
                           />
                           <Select
                             label="Select Computer Laboratory"
                             value={formData.computerLab}
-                            onChange={(value) =>
+                            onChange={(value) => {
                               setFormData((prevData) => ({
                                 ...prevData,
                                 computerLab: value,
-                              }))
-                            }
+                              }));
+                              localStorage.setItem("computerLab", value);
+                            }}
                           >
                             <Option value="CLAB1">Computer Laboratory 1</Option>
                             <Option value="CLAB2">Computer Laboratory 2</Option>
@@ -371,9 +477,17 @@ export default function Generatelobby() {
                             </Option>
                           </Select>
                           <Button
-                            onClick={() => {
-                              saveFormDataToFirestore();
-                              setActiveStep(1);
+                            onClick={async () => {
+                              if (!validateForm()) return;
+                              const confirmed = window.confirm(
+                                "Are you sure you want to create this lobby?"
+                              );
+                              if (confirmed) {
+                                const success = await saveFormDataToFirestore();
+                                if (success) {
+                                  setActiveStep(1);
+                                }
+                              }
                             }}
                             color="blue"
                             fullWidth
@@ -457,6 +571,7 @@ export default function Generatelobby() {
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
     </>
   ) : null;

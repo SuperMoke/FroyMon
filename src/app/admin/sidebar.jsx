@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                   onClick={toggleSidebar}
                 >
                   <DocumentTextIcon className="h-5 w-5" />
-                  <Typography>Computer Ticket</Typography>
+                  <Typography>Computer Problem</Typography>
                 </Link>
               </li>
               <li>

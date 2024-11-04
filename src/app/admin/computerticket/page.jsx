@@ -52,8 +52,8 @@ export default function ComputerTicket() {
     "Computer Number",
     "Computer Status",
     "Description",
-    "Student Name",
-    "Ticket Status",
+    "Name",
+    "Status",
     "Remarks",
     "Action",
     "History",
@@ -201,15 +201,30 @@ export default function ComputerTicket() {
   };
 
   useEffect(() => {
-    const filtered = ticketData.filter((ticket) => {
-      return (
-        String(ticket.computerNumber).includes(searchComputerNumber) &&
-        (filterComputerLab === "" ||
-          ticket.computerLab === filterComputerLab) &&
-        (filterComputerStatus === "" ||
-          ticket.computerStatus === filterComputerStatus)
-      );
-    });
+    const filtered = ticketData
+      .filter((ticket) => {
+        return (
+          String(ticket.computerNumber).includes(searchComputerNumber) &&
+          (filterComputerLab === "" ||
+            ticket.computerLab === filterComputerLab) &&
+          (filterComputerStatus === "" ||
+            ticket.computerStatus === filterComputerStatus)
+        );
+      })
+      .sort((a, b) => {
+        // Prioritize "Pending" tickets
+        if (a.ticketStatus === "Pending" && b.ticketStatus !== "Pending") {
+          return -1;
+        }
+        if (a.ticketStatus !== "Pending" && b.ticketStatus === "Pending") {
+          return 1;
+        }
+        // If both are "Pending" or both are not "Pending", sort by timeIn
+        const dateTimeA = new Date(`${a.date} ${a.timeIn}`);
+        const dateTimeB = new Date(`${b.date} ${b.timeIn}`);
+        return dateTimeB - dateTimeA;
+      });
+
     setFilteredTicketData(filtered);
   }, [
     searchComputerNumber,
@@ -294,7 +309,7 @@ export default function ComputerTicket() {
             </ListItem>
           </MenuHandler>
           <MenuList>
-            {["Pending", "Open", "On-Going", "Closed"].map((status) => (
+            {["Pending", "On-Going", "Closed"].map((status) => (
               <MenuItem key={status} onClick={() => handleStatusChange(status)}>
                 {status}
               </MenuItem>
@@ -319,7 +334,7 @@ export default function ComputerTicket() {
                   color="blue-gray"
                   className="mb-4 md:mb-0"
                 >
-                  Computer Tickets
+                  Computer Problem
                 </Typography>
                 <div className="flex flex-col md:flex-row gap-4">
                   <Input
@@ -371,9 +386,8 @@ export default function ComputerTicket() {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="pr-10"
+                      className="pr-5"
                     />
-                    <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
                   </div>
                 </div>
               </div>

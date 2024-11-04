@@ -307,6 +307,15 @@ const Admin_CreateUser = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    // Add confirmation dialog
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (!isConfirmed) {
+      return; // Exit if user cancels
+    }
+
     try {
       const response = await fetch("/api/deleteUser", {
         method: "DELETE",

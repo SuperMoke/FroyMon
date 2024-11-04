@@ -38,6 +38,7 @@ import {
   FaComment,
 } from "react-icons/fa";
 import RemarksSection from "./RemarksSection";
+
 export default function ComputerTicket() {
   const TABLE_HEAD = [
     "Date and Time",
@@ -45,8 +46,8 @@ export default function ComputerTicket() {
     "Computer Number",
     "Computer Status",
     "Description",
-    "Student Name",
-    "Ticket Status",
+    "Name",
+    "Status",
     "Remarks",
   ];
   const [ticketData, setTicketData] = useState([]);
@@ -96,15 +97,25 @@ export default function ComputerTicket() {
   }, [isAuthorized, selectedDate]);
 
   useEffect(() => {
-    const filtered = ticketData.filter((ticket) => {
-      return (
-        ticket.computerNumber.includes(searchComputerNumber) &&
-        (filterComputerLab === "" ||
-          ticket.computerLab === filterComputerLab) &&
-        (filterComputerStatus === "" ||
-          ticket.computerStatus === filterComputerStatus)
-      );
-    });
+    const filtered = ticketData
+      .filter((ticket) => {
+        return (
+          ticket.ticketStatus === "Pending" &&
+          ticket.computerNumber.includes(searchComputerNumber) &&
+          (filterComputerLab === "" ||
+            ticket.computerLab === filterComputerLab) &&
+          (filterComputerStatus === "" ||
+            ticket.computerStatus === filterComputerStatus)
+        );
+      })
+      .sort((a, b) => {
+        // Create datetime strings for comparison
+        const dateTimeA = new Date(`${a.date} ${a.timeIn}`);
+        const dateTimeB = new Date(`${b.date} ${b.timeIn}`);
+        // Sort in descending order (most recent first)
+        return dateTimeB - dateTimeA;
+      });
+
     setFilteredTicketData(filtered);
   }, [
     searchComputerNumber,
@@ -127,7 +138,7 @@ export default function ComputerTicket() {
                   color="blue-gray"
                   className="mb-4 md:mb-0"
                 >
-                  Computer Tickets
+                  Computer Problem
                 </Typography>
                 <div className="flex flex-col md:flex-row gap-4">
                   <Input
@@ -179,9 +190,8 @@ export default function ComputerTicket() {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="pr-10"
+                      className="pr-5"
                     />
-                    <FaCalendarAlt className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
                   </div>
                 </div>
               </div>

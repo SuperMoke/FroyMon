@@ -25,6 +25,7 @@ export default function SigninPage() {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const [loginAttempts, setLoginAttempts] = useState(0);
 
   useEffect(() => {
     if (error) {
@@ -35,12 +36,29 @@ export default function SigninPage() {
     }
   }, [error]);
 
+  const checkGenericPassword = (password) => {
+    const genericPatterns = [
+      "student123",
+      "admin123",
+      "teacher123",
+      "password123",
+      "default123",
+    ];
+    return genericPatterns.includes(password.toLowerCase());
+  };
+
   const handleSignIn = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     const auth = getAuth();
     try {
       await signInWithEmailAndPassword(auth, email, password);
+
+      if (checkGenericPassword(password)) {
+        toast.warning("For security reasons, you must change your password.");
+        router.push("/change-password");
+        return;
+      }
       const roleMap = {
         Student: "/user",
         Teacher: "/teacher",
@@ -56,8 +74,16 @@ export default function SigninPage() {
       console.error("User does not have a valid role");
     } catch (error) {
       console.error("Error signing in:", error);
+      setLoginAttempts((prev) => prev + 1);
 
-      toast.error("Invalid email or password. Please try again.");
+      if (loginAttempts >= 2) {
+        // Check for 3rd attempt (0, 1, 2)
+        toast.error(
+          "You have attempted to login 3 times. Please contact your teacher or MISSO to reset your password."
+        );
+      } else {
+        toast.error("Invalid email or password. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -109,9 +135,9 @@ export default function SigninPage() {
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeSlashIcon className="h-5 w-5" />
-                ) : (
                   <EyeIcon className="h-5 w-5" />
+                ) : (
+                  <EyeSlashIcon className="h-5 w-5" />
                 )}
               </IconButton>
             </div>

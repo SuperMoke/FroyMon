@@ -78,7 +78,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                   onClick={toggleSidebar}
                 >
                   <ComputerDesktopIcon className="h-5 w-5" />
-                  <Typography>Computer Tickets</Typography>
+                  <Typography>Computer Problem</Typography>
                 </Link>
               </li>
               <li>

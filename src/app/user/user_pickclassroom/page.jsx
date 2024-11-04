@@ -246,13 +246,13 @@ export default function PickClassroom() {
                 isFirstStep={(value) => setIsFirstStep(value)}
                 className="mb-8"
               >
-                <Step onClick={() => setActiveStep(0)}>
+                <Step>
                   <SiGoogleclassroom className="h-5 w-5" />
                 </Step>
-                <Step onClick={() => setActiveStep(1)}>
+                <Step>
                   <RiLockPasswordLine className="h-5 w-5" />
                 </Step>
-                <Step onClick={() => setActiveStep(2)}>
+                <Step>
                   <FaCheckCircle className="h-5 w-5" />
                 </Step>
               </Stepper>
