@@ -100,6 +100,10 @@ export default function QrScannerPage() {
   };
 
   const handleSubmit = async () => {
+    if (!formData.computerStatus || !formData.description) {
+      toast.error("Both Computer Status and Description are required");
+      return;
+    }
     try {
       const userQuery = query(
         collection(db, "user"),
@@ -140,7 +144,7 @@ export default function QrScannerPage() {
 
   const handleManualSubmit = () => {
     if (!formData.computerLab || !formData.computerNumber) {
-      setErrorMessage("Please enter both Computer Lab and Computer Number");
+      toast.error("Both Computer Laboratory and Computer Number are required");
       return;
     }
     setActiveStep(1);

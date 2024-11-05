@@ -570,14 +570,6 @@ const Admin_CreateUser = () => {
               onChange={(e) => setName(e.target.value)}
               required
             />
-            <Typography className="font-normal mb-2">Email:</Typography>
-            <Input
-              type="email"
-              label="Enter The CCA Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
             <Typography className="font-normal mb-2">Role:</Typography>
             <Select
               label="Select Role"

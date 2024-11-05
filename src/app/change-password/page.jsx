@@ -81,6 +81,25 @@ export default function ChangePasswordPage() {
     }
   };
 
+  const [passwordRequirements, setPasswordRequirements] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false,
+  });
+
+  // Add this function to check password requirements in real-time
+  const checkPasswordRequirements = (password) => {
+    setPasswordRequirements({
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[@$!%*?&]/.test(password),
+    });
+  };
+
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
       <Card className="w-96 p-6">
@@ -105,7 +124,10 @@ export default function ChangePasswordPage() {
               type={showPassword ? "text" : "password"}
               label="Enter New Password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e) => {
+                setNewPassword(e.target.value);
+                checkPasswordRequirements(e.target.value);
+              }}
               required
               className="pr-20"
             />
@@ -122,11 +144,48 @@ export default function ChangePasswordPage() {
               )}
             </IconButton>
           </div>
-          <Typography className="mt-2 text-xs text-gray-600">
-            Password must contain at least 8 characters, one uppercase letter,
-            one lowercase letter, one number, and one special character
-            (@$!%*?&)
-          </Typography>
+          <div className="mt-2 space-y-1">
+            <div
+              className={`text-xs ${
+                passwordRequirements.length ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {passwordRequirements.length ? "✓" : "✗"} At least 8 characters
+            </div>
+            <div
+              className={`text-xs ${
+                passwordRequirements.uppercase
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            >
+              {passwordRequirements.uppercase ? "✓" : "✗"} One uppercase letter
+            </div>
+            <div
+              className={`text-xs ${
+                passwordRequirements.lowercase
+                  ? "text-green-500"
+                  : "text-red-500"
+              }`}
+            >
+              {passwordRequirements.lowercase ? "✓" : "✗"} One lowercase letter
+            </div>
+            <div
+              className={`text-xs ${
+                passwordRequirements.number ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {passwordRequirements.number ? "✓" : "✗"} One number
+            </div>
+            <div
+              className={`text-xs ${
+                passwordRequirements.special ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {passwordRequirements.special ? "✓" : "✗"} One special character
+              (@$!%*?&)
+            </div>
+          </div>
           <div className="mb-6">
             <h2 className="text-black text-sm font-normal mb-2">
               Confirm Password:

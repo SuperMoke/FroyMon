@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  Tooltip,
 } from "@material-tailwind/react";
 import { auth, db } from "../../firebase";
 import {
@@ -96,6 +97,11 @@ const Admin_CreateUser = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    if (!email.endsWith("@cca.edu.ph")) {
+      toast.error("Please use a valid CCA email address (@cca.edu.ph)");
+      return;
+    }
+
     let defaultPassword;
     switch (role) {
       case "Student":
@@ -204,6 +210,13 @@ const Admin_CreateUser = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this user?"
+    );
+
+    if (!isConfirmed) {
+      return; // Exit if user cancels
+    }
     try {
       const response = await fetch("/api/deleteUser", {
         method: "DELETE",
@@ -346,35 +359,40 @@ const Admin_CreateUser = () => {
                           </Typography>
                         </td>
                         <td className="p-4 flex justify-center space-x-2">
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            <PencilIcon className="h-5 w-5" />
-                          </IconButton>
-
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() =>
-                              handleDeleteUser(user.id, user.email)
-                            }
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </IconButton>
-                          <IconButton
-                            size="sm"
-                            color="blue-gray"
-                            variant="text"
-                            onClick={() =>
-                              handleResetPassword(user.id, user.role)
-                            }
-                          >
-                            <LockClosedIcon className="h-5 w-5" />
-                          </IconButton>
+                          <Tooltip content="Edit User">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <PencilIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Delete User">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() =>
+                                handleDeleteUser(user.id, user.email)
+                              }
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip content="Reset Password">
+                            <IconButton
+                              size="sm"
+                              color="blue-gray"
+                              variant="text"
+                              onClick={() =>
+                                handleResetPassword(user.id, user.role)
+                              }
+                            >
+                              <LockClosedIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
                         </td>
                       </tr>
                     ))}
@@ -431,6 +449,7 @@ const Admin_CreateUser = () => {
             Create
           </Button>
         </DialogFooter>
+        <ToastContainer />
       </Dialog>
       <Dialog open={openEditDialog} handler={setOpenEditDialog}>
         <DialogHeader>Edit User</DialogHeader>
@@ -446,14 +465,7 @@ const Admin_CreateUser = () => {
               onChange={(e) => setName(e.target.value)}
               required
             />
-            <Typography className="font-normal mb-2">Email:</Typography>
-            <Input
-              type="email"
-              label="Enter The CCA Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+
             <Typography className="font-normal mb-2">Role:</Typography>
             <Select
               label="Select Role"

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Typography, Card, Input, Button } from "@material-tailwind/react";
 
 import Image from "next/image";
@@ -85,7 +85,16 @@ export default function AdminProfile() {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setProfilePhoto(file);
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+    if (file && allowedTypes.includes(file.type)) {
+      setProfilePhoto(file);
+    } else {
+      alert("Please select a valid image file (JPEG, PNG, GIF, or WEBP)");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleUpload = async () => {
@@ -177,7 +186,13 @@ export default function AdminProfile() {
                     )}
                   </div>
                   <div className="flex flex-col space-y-5">
-                    <Input type="file" onChange={handleFileChange}></Input>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg, image/png, image/gif, image/webp"
+                      onChange={handleFileChange}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
                     <Button onClick={handleUpload}>Upload Profile Photo</Button>
                   </div>
                   <Typography color="gray" className="font-normal mt-6 mb-2">

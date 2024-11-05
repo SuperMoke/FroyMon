@@ -18,6 +18,7 @@ export default function ViewAttendance() {
     "Computer Lab",
     "Time In",
     "Time Out",
+    "Total Time",
     "Date",
   ];
   const [attendanceData, setAttendanceData] = useState({});
@@ -50,7 +51,6 @@ export default function ViewAttendance() {
   }, [user, loading, router]);
 
   useEffect(() => {
-    console.log("Teacher ID:", teacherId);
     if (!teacherId) return;
 
     const q = query(
@@ -60,14 +60,40 @@ export default function ViewAttendance() {
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const newAttendanceData = {};
+      const tempData = {};
+
+      // First pass to organize data by student
       querySnapshot.forEach((doc) => {
         const studentData = doc.data();
+        const key = `${studentData.ccaEmail}_${studentData.classSection}`;
+
+        if (!tempData[key]) {
+          tempData[key] = {
+            ...studentData,
+            timeIn: studentData.timeIn,
+            timeOut: studentData.timeOut,
+          };
+        } else {
+          // Update timeIn if current record has earlier time
+          if (studentData.timeIn < tempData[key].timeIn) {
+            tempData[key].timeIn = studentData.timeIn;
+          }
+          // Update timeOut if current record has later time
+          if (studentData.timeOut > tempData[key].timeOut) {
+            tempData[key].timeOut = studentData.timeOut;
+          }
+        }
+      });
+
+      // Organize final data by section
+      const newAttendanceData = {};
+      Object.values(tempData).forEach((studentData) => {
         if (!newAttendanceData[studentData.classSection]) {
           newAttendanceData[studentData.classSection] = [];
         }
         newAttendanceData[studentData.classSection].push(studentData);
       });
+
       setAttendanceData(newAttendanceData);
     });
 
@@ -91,6 +117,33 @@ export default function ViewAttendance() {
     {}
   );
 
+  // Add this helper function at the top of the file, after the imports
+  const calculateTotalTime = (timeIn, timeOut) => {
+    const [inTime, inPeriod] = timeIn.split(" ");
+    const [outTime, outPeriod] = timeOut.split(" ");
+
+    const [inHours, inMinutes] = inTime.split(":");
+    const [outHours, outMinutes] = outTime.split(":");
+
+    let startHours = parseInt(inHours);
+    let endHours = parseInt(outHours);
+
+    if (inPeriod === "PM" && startHours !== 12) startHours += 12;
+    if (outPeriod === "PM" && endHours !== 12) endHours += 12;
+    if (inPeriod === "AM" && startHours === 12) startHours = 0;
+    if (outPeriod === "AM" && endHours === 12) endHours = 0;
+
+    const totalMinutes =
+      endHours * 60 +
+      parseInt(outMinutes) -
+      (startHours * 60 + parseInt(inMinutes));
+
+    const hours = Math.floor(Math.abs(totalMinutes) / 60);
+    const minutes = Math.abs(totalMinutes) % 60;
+
+    return hours === 0 ? `${minutes}m` : `${hours}h ${minutes}m`;
+  };
+
   const downloadCSV = (students, section) => {
     const csvRows = [];
     const headers = TABLE_HEAD.join(",");
@@ -104,6 +157,7 @@ export default function ViewAttendance() {
         student.computerLab,
         student.timeIn,
         student.timeOut,
+        calculateTotalTime(student.timeIn, student.timeOut),
         `"${student.date}"`,
       ];
       csvRows.push(values.join(","));
@@ -212,6 +266,16 @@ export default function ViewAttendance() {
                     className="font-normal text-center"
                   >
                     {student.timeOut}
+                  </Typography>
+                </td>
+
+                <td className="p-4">
+                  <Typography
+                    variant="small"
+                    color="blue-gray"
+                    className="font-normal text-center"
+                  >
+                    {calculateTotalTime(student.timeIn, student.timeOut)}
                   </Typography>
                 </td>
                 <td className="p-4">

@@ -6,7 +6,7 @@ import {
   Input,
   Button,
 } from "@material-tailwind/react";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "../header";
 import Image from "next/image";
 import {
@@ -40,6 +40,7 @@ export default function TeacherProfile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -86,7 +87,16 @@ export default function TeacherProfile() {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setProfilePhoto(file);
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+
+    if (file && allowedTypes.includes(file.type)) {
+      setProfilePhoto(file);
+    } else {
+      alert("Please select a valid image file (JPEG, PNG, GIF, or WEBP)");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   const handleUpload = async () => {
@@ -178,7 +188,13 @@ export default function TeacherProfile() {
                     )}
                   </div>
                   <div className="flex flex-col space-y-5">
-                    <Input type="file" onChange={handleFileChange}></Input>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg, image/png, image/gif, image/webp"
+                      onChange={handleFileChange}
+                      className="w-full px-3 py-2 border rounded-lg"
+                    />
                     <Button onClick={handleUpload}>Upload Profile Photo</Button>
                   </div>
                   <Typography color="gray" className="font-normal mt-2 mb-2">

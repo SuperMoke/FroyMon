@@ -23,6 +23,8 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../firebase";
 import { FaQrcode, FaKeyboard, FaCheckCircle } from "react-icons/fa";
 import Sidebar from "../sidebar";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function QrScannerPage() {
   const [data, setData] = useState("");
@@ -101,6 +103,10 @@ export default function QrScannerPage() {
   };
 
   const handleSubmit = async () => {
+    if (!formData.computerStatus || !formData.description) {
+      toast.error("Both Computer Status and Description are required");
+      return;
+    }
     try {
       const userQuery = query(
         collection(db, "user"),
@@ -141,9 +147,8 @@ export default function QrScannerPage() {
 
   const handleManualSubmit = () => {
     if (!formData.computerLab || !formData.computerNumber) {
-      setErrorMessage("Please enter both Computer Lab and Computer Number");
+      toast.error("Both Computer Laboratory and Computer Number are required");
       return;
-      Toas;
     }
     setActiveStep(1);
   };
@@ -175,11 +180,6 @@ export default function QrScannerPage() {
                     </Step>
                   </Stepper>
 
-                  {errorMessage && (
-                    <Alert variant="outlined" color="red" className="mb-4">
-                      <span>{errorMessage}</span>
-                    </Alert>
-                  )}
                   {activeStep === 0 && (
                     <div className="space-y-4">
                       <Typography variant="h5" className="text-center">
@@ -187,21 +187,19 @@ export default function QrScannerPage() {
                       </Typography>
                       <div className="flex justify-center">
                         <Card className="w-full max-w-md p-4">
-                          {scanning ? (
-                            <>
-                              <div
-                                id="qr-code-reader"
-                                className="w-full h-64 mb-4"
-                              ></div>
-                              <Button onClick={stopScan} color="red" fullWidth>
-                                Stop Scanning
-                              </Button>
-                            </>
-                          ) : (
-                            <Button onClick={startScan} color="blue" fullWidth>
-                              Start Scanning
-                            </Button>
-                          )}
+                          <div
+                            id="qr-code-reader"
+                            className={`w-full h-64 mb-4 ${
+                              scanning ? "block" : "hidden"
+                            }`}
+                          ></div>
+                          <Button
+                            onClick={scanning ? stopScan : startScan}
+                            color={scanning ? "red" : "blue"}
+                            fullWidth
+                          >
+                            {scanning ? "Stop Scanning" : "Start Scanning"}
+                          </Button>
                         </Card>
                       </div>
                       <div className="flex justify-center">
@@ -223,6 +221,7 @@ export default function QrScannerPage() {
                               <Select
                                 label="Select Computer Laboratory"
                                 placeholder={undefined}
+                                required
                                 onChange={(value) =>
                                   setFormData({
                                     ...formData,
@@ -272,6 +271,7 @@ export default function QrScannerPage() {
                               </Typography>
                               <Input
                                 label="Enter the computer number"
+                                type="number"
                                 onChange={(e) =>
                                   setFormData({
                                     ...formData,
@@ -322,6 +322,7 @@ export default function QrScannerPage() {
                           <Option value="Network Problems">
                             Network Problems
                           </Option>
+                          <Option value="Other Issues">Other Issues</Option>
                         </Select>
                         <Typography
                           variant="small"
@@ -374,6 +375,7 @@ export default function QrScannerPage() {
             </div>
           </div>
         </div>
+        <ToastContainer />
       </div>
     </>
   ) : null;
