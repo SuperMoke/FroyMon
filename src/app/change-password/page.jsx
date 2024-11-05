@@ -15,6 +15,7 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { updatePassword } from "firebase/auth";
+import { isAuthenticated } from "../utils/auth";
 
 export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
@@ -56,13 +57,22 @@ export default function ChangePasswordPage() {
       await updatePassword(user, newPassword);
       toast.success("Password updated successfully!");
 
+      // Check roles and redirect
       const roleMap = {
         Student: "/user",
         Teacher: "/teacher",
         Admin: "/admin",
       };
 
-      router.push(roleMap[user.role] || "/user");
+      for (const role of Object.keys(roleMap)) {
+        const hasRole = await isAuthenticated(role);
+        if (hasRole) {
+          router.push(roleMap[role]);
+          return;
+        }
+      }
+
+      router.push("/");
     } catch (error) {
       toast.error("Error updating password. Please try again.");
       console.error("Error:", error);
