@@ -167,6 +167,49 @@ export default function Generatelobby() {
   }, [user]);
 
   useEffect(() => {
+    if (!pin) return;
+
+    const unsubscribe = onSnapshot(
+      query(
+        collection(db, "studententries"),
+        where("lobbypassword", "==", pin)
+      ),
+      (snapshot) => {
+        const uniqueStudents = {};
+        const emailList = [];
+
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          uniqueStudents[data.ccaEmail] = data;
+          emailList.push(data.ccaEmail);
+        });
+
+        const studentsData = Object.values(uniqueStudents);
+        setStudents(studentsData);
+        localStorage.setItem("students", JSON.stringify(studentsData));
+
+        // Fetch profile URLs if there are students
+        if (emailList.length > 0) {
+          const userQuery = query(
+            collection(db, "user"),
+            where("email", "in", emailList)
+          );
+          getDocs(userQuery).then((userSnapshot) => {
+            const profileUrlsData = {};
+            userSnapshot.forEach((doc) => {
+              const userData = doc.data();
+              profileUrlsData[userData.email] = userData.profileUrl;
+            });
+            setProfileUrls(profileUrlsData);
+          });
+        }
+      }
+    );
+
+    return () => unsubscribe();
+  }, [pin]);
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
       const storedName = localStorage.getItem("name");
       const storedEmail = localStorage.getItem("email");
@@ -201,15 +244,20 @@ export default function Generatelobby() {
           where("lobbypassword", "==", pin)
         ),
         (snapshot) => {
-          const studentsData = [];
+          const uniqueStudents = {};
           const emailList = [];
+
           snapshot.forEach((doc) => {
             const data = doc.data();
-            studentsData.push(data);
+            uniqueStudents[data.ccaEmail] = data;
             emailList.push(data.ccaEmail);
           });
+
+          const studentsData = Object.values(uniqueStudents);
+
           setStudents(studentsData);
           localStorage.setItem("students", JSON.stringify(studentsData));
+
           const userQuery = query(
             collection(db, "user"),
             where("email", "in", emailList)
