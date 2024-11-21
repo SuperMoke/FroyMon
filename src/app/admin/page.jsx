@@ -78,25 +78,30 @@ export default function AdminPage() {
       return;
     }
 
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
     const checkAuth = async () => {
       console.log("Checking authentication...");
-      const roleMap = {
-        Student: true,
-        Teacher: true,
-        Admin: true,
-      };
-      for (const role of Object.keys(roleMap)) {
-        const authorized = await isAuthenticated(role);
-        if (authorized) {
-          console.log("User is authorized:", role);
-          setIsAuthorized(true);
-          return;
-        }
+      const requiredRole = "Admin"; // Change this to the required role for the page
+
+      const authorized = await isAuthenticated(requiredRole);
+      if (authorized) {
+        console.log("User is authorized:", requiredRole);
+        setIsAuthorized(true);
+        return;
       }
+
       console.log("User is not authorized, redirecting to home...");
       router.push("/");
     };
     checkAuth();
+
+    return () => {
+      window.onpopstate = null;
+    };
   }, [user, loading, router]);
 
   useEffect(() => {

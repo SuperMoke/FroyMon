@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { updatePassword } from "firebase/auth";
 import { isAuthenticated } from "../utils/auth";
+import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 
 export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
@@ -24,6 +25,34 @@ export default function ChangePasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkPasswordChanged = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const db = getFirestore();
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.passwordChanged) {
+            // Redirect the user away if password has been changed
+            router.push("/"); // Change to your desired path
+          } else {
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+        }
+      } else {
+        // If the user is not authenticated, redirect to login
+        router.push("/login"); // Change to your login path
+      }
+    };
+    checkPasswordChanged();
+  }, []);
 
   const handlePasswordChange = async (e) => {
     e.preventDefault();
@@ -55,6 +84,14 @@ export default function ChangePasswordPage() {
     try {
       const user = auth.currentUser;
       await updatePassword(user, newPassword);
+      // Store the passwordChanged flag in Firestore
+      const db = getFirestore();
+      await setDoc(
+        doc(db, "users", user.uid),
+        { passwordChanged: true },
+        { merge: true }
+      );
+
       toast.success("Password updated successfully!");
 
       // Check roles and redirect

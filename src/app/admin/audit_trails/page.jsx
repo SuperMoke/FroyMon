@@ -12,6 +12,8 @@ import {
   MenuHandler,
   MenuList,
   MenuItem,
+  Select,
+  Option,
 } from "@material-tailwind/react";
 import {
   addDoc,
@@ -34,7 +36,9 @@ export default function Audit_Trails() {
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [user, loading, error] = useAuthState(auth);
-  const [auditLogs, setAuditLogs] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]); // For filtered/displayed logs
+  const [allLogs, setAllLogs] = useState([]); // For storing all logs
+  const [filterType, setFilterType] = useState("All");
 
   useEffect(() => {
     if (loading) return;
@@ -156,17 +160,39 @@ export default function Audit_Trails() {
   }, []);
 
   const updateAuditLogs = (newLogs) => {
-    setAuditLogs((prevLogs) => {
+    setAllLogs((prevLogs) => {
+      // Combine previous logs with new logs
       const combinedLogs = [...prevLogs, ...newLogs];
+
+      // Remove duplicates based on the log ID
       const uniqueLogs = combinedLogs.reduce((acc, log) => {
         if (!acc.find((item) => item.id === log.id)) {
           acc.push(log);
         }
         return acc;
       }, []);
-      return uniqueLogs.sort((a, b) => b.timestamp - a.timestamp).slice(0, 100);
+      return uniqueLogs;
     });
   };
+
+  // Update the useEffect that handles filtering
+  useEffect(() => {
+    // First filter logs based on selected type
+    const filteredLogs =
+      filterType === "All"
+        ? allLogs
+        : allLogs.filter((log) => log.type === filterType);
+
+    // Then sort the filtered logs by timestamp (latest to oldest)
+    const sortedLogs = filteredLogs.sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB - dateA;
+    });
+
+    // Update the state with sorted logs
+    setAuditLogs(sortedLogs);
+  }, [filterType, allLogs]);
 
   const renderAuditLogsTable = () => (
     <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
@@ -220,7 +246,7 @@ export default function Audit_Trails() {
                     color="blue-gray"
                     className="font-normal text-center"
                   >
-                    {log.timestamp.toLocaleString()}
+                    {log.timestamp}
                   </Typography>
                 </td>
                 <td className="p-4">
@@ -265,6 +291,18 @@ export default function Audit_Trails() {
                 >
                   Audit Trails
                 </Typography>
+                <div>
+                  <Select
+                    value={filterType}
+                    onChange={(value) => setFilterType(value)}
+                    className="p-2 border border-gray-300 rounded"
+                  >
+                    <Option value="All">All</Option>
+                    <Option value="Admin">Admin</Option>
+                    <Option value="Teacher">Teacher</Option>
+                    <Option value="Student">Student</Option>
+                  </Select>
+                </div>
               </div>
               {renderAuditLogsTable()}
             </div>

@@ -287,6 +287,9 @@ export default function PickClassroom() {
                           <p className="font-semibold mb-2">
                             Computer Lab: {classroom.computerLab}
                           </p>
+                          <p className="font-semibold mb-2">
+                            Class Section: {classroom.classSection}
+                          </p>
                         </Card>
                       ))
                     ) : (
