@@ -1,5 +1,5 @@
 "use client";
-import React, { useStat, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Card,
