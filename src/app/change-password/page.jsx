@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useStat, useEffect } from "react";
 import {
   Button,
   Card,
@@ -84,7 +84,6 @@ export default function ChangePasswordPage() {
     try {
       const user = auth.currentUser;
       await updatePassword(user, newPassword);
-      // Store the passwordChanged flag in Firestore
       const db = getFirestore();
       await setDoc(
         doc(db, "users", user.uid),

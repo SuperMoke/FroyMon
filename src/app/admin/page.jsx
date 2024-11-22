@@ -85,7 +85,7 @@ export default function AdminPage() {
 
     const checkAuth = async () => {
       console.log("Checking authentication...");
-      const requiredRole = "Admin"; // Change this to the required role for the page
+      const requiredRole = "Admin"; 
 
       const authorized = await isAuthenticated(requiredRole);
       if (authorized) {

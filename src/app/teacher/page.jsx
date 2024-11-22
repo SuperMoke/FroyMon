@@ -81,7 +81,7 @@ export default function TeacherPage() {
 
     const checkAuth = async () => {
       console.log("Checking authentication...");
-      const requiredRole = "Teacher"; // Change this to the required role for the page
+      const requiredRole = "Teacher";
 
       const authorized = await isAuthenticated(requiredRole);
       if (authorized) {
