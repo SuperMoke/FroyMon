@@ -267,16 +267,19 @@ export default function ComputerReport() {
           <Sidebar />
           <main className="flex-1 p-4 sm:ml-64">
             <div className="container mx-auto">
-              <Typography
-                variant="h3"
-                color="blue-gray"
-                className="mb-4 md:mb-0"
-              >
-                Computer Reports
-              </Typography>
-              <Button onClick={downloadPDF} className="mb-4" color="blue">
-                Download PDF
-              </Button>
+              <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+                <Typography
+                  variant="h3"
+                  color="blue-gray"
+                  className="mb-4 md:mb-0"
+                >
+                  Computer Reports
+                </Typography>
+                <Button onClick={downloadPDF} className="mb-4" color="blue">
+                  Download PDF
+                </Button>
+              </div>
+
               <div
                 id="report-content"
                 ref={reportRef}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Collapse,
   Textarea,
@@ -6,83 +6,71 @@ import {
   Typography,
 } from "@material-tailwind/react";
 import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  serverTimestamp,
+  arrayUnion,
+  updateDoc,
+  doc,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 
-const RemarksSection = ({ ticket, updateTicketRemarks, user }) => {
+const RemarksSection = ({ ticket, user }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [remark, setRemark] = useState(ticket.remarks || "");
-  const [prevRemark, setPrevRemark] = useState(ticket.remarks || "");
-
-  useEffect(() => {
-    setRemark(ticket.remarks || "");
-    setPrevRemark(ticket.remarks || "");
-  }, [ticket.remarks]);
+  const [newRemark, setNewRemark] = useState("");
 
   const handleRemarkChange = (e) => {
-    setRemark(e.target.value);
+    setNewRemark(e.target.value);
   };
 
-  const saveTicketHistory = async (
-    ticketId,
-    action,
-    oldValue,
-    newValue,
-    userId
-  ) => {
-    await addDoc(collection(db, "ticketHistory"), {
-      ticketId,
-      action,
-      oldValue,
-      newValue,
-      userId,
-      timestamp: serverTimestamp(),
+  const handleAddRemark = async () => {
+    if (!newRemark.trim()) return;
+
+    const remarkData = {
+      text: newRemark,
+      timestamp: new Date().toISOString(), // Use regular timestamp instead
+      user: user.email,
+    };
+
+    const ticketRef = doc(db, "ticketentries", ticket.id);
+    await updateDoc(ticketRef, {
+      remarks: arrayUnion(remarkData),
     });
-  };
 
-  const handleSaveRemark = async () => {
-    // Save the history first
-    await saveTicketHistory(
-      ticket.id,
-      "Remarks Update",
-      prevRemark,
-      remark,
-      user.email
-    );
+    // Save to history
+    await addDoc(collection(db, "ticketHistory"), {
+      ticketId: ticket.id,
+      action: "Add Remark",
+      newValue: newRemark,
+      userId: user.email,
+      timestamp: serverTimestamp(), // Keep serverTimestamp for history
+    });
 
-    // Then update the remarks
-    await updateTicketRemarks(ticket.id, remark);
-    setIsEditing(false);
-    setPrevRemark(remark);
-  };
-
-  const handleCancelEdit = () => {
-    setRemark(prevRemark);
+    setNewRemark("");
     setIsEditing(false);
   };
 
   return (
     <div className="w-full">
       {!isEditing ? (
-        <div className="flex items-center justify-between">
-          <Button size="sm" color="blue" onClick={() => setIsEditing(true)}>
-            <FaEdit className="mr-2" /> Add Remarks
-          </Button>
-        </div>
+        <Button size="sm" color="blue" onClick={() => setIsEditing(true)}>
+          <FaEdit className="mr-2" /> Add New Remark
+        </Button>
       ) : (
         <Collapse open={isEditing}>
           <Textarea
-            value={remark}
+            value={newRemark}
             onChange={handleRemarkChange}
             className="mb-2"
             rows={3}
           />
           <div className="flex justify-end gap-2">
-            <Button size="sm" color="red" onClick={handleCancelEdit}>
+            <Button size="sm" color="red" onClick={() => setIsEditing(false)}>
               <FaTimes className="mr-2" /> Cancel
             </Button>
-            <Button size="sm" color="green" onClick={handleSaveRemark}>
-              <FaSave className="mr-2" /> Save
+            <Button size="sm" color="green" onClick={handleAddRemark}>
+              <FaSave className="mr-2" /> Add
             </Button>
           </div>
         </Collapse>

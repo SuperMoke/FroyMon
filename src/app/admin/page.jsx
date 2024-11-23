@@ -51,6 +51,13 @@ import {
   MenuItem,
 } from "@material-tailwind/react";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+} from "@material-tailwind/react";
+import AnnouncementComponent from "./AnnouncementComponent";
 
 export default function AdminPage() {
   const [statusCounts, setStatusCounts] = useState({
@@ -69,6 +76,11 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState(null);
   const [editContent, setEditContent] = useState("");
   const [userProfile, setUserProfile] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
+  const [announcementFilter, setAnnouncementFilter] = useState("all"); // all, today, week, month
+  const [announcementPriority, setAnnouncementPriority] = useState("normal"); // normal, important, urgent
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -85,7 +97,7 @@ export default function AdminPage() {
 
     const checkAuth = async () => {
       console.log("Checking authentication...");
-      const requiredRole = "Admin"; 
+      const requiredRole = "Admin";
 
       const authorized = await isAuthenticated(requiredRole);
       if (authorized) {
@@ -151,6 +163,28 @@ export default function AdminPage() {
 
     fetchData();
   }, []);
+
+  const handleIssueClick = async (issueType) => {
+    try {
+      const ticketsRef = collection(db, "ticketentries");
+      const q = query(ticketsRef, where("computerStatus", "==", issueType));
+      const querySnapshot = await getDocs(q);
+
+      const issues = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setSelectedIssue({
+        type: issueType,
+        tickets: issues,
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error fetching issues:", error);
+      toast.error("Failed to fetch issue details");
+    }
+  };
 
   useEffect(() => {
     const fetchAnnouncements = () => {
@@ -349,7 +383,10 @@ export default function AdminPage() {
                 Computer Status Overview
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="w-full bg-white shadow-lg rounded-xl p-6">
+                <Card
+                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                  onClick={() => handleIssueClick("Hardware Issues")}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <Typography variant="h5" color="blue-gray">
                       Hardware Issues
@@ -365,7 +402,10 @@ export default function AdminPage() {
                     className="mt-2"
                   />
                 </Card>
-                <Card className="w-full bg-white shadow-lg rounded-xl p-6">
+                <Card
+                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                  onClick={() => handleIssueClick("Software Issues")}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <Typography variant="h5" color="blue-gray">
                       Software Issues
@@ -381,7 +421,10 @@ export default function AdminPage() {
                     className="mt-2"
                   />
                 </Card>
-                <Card className="w-full bg-white shadow-lg rounded-xl p-6">
+                <Card
+                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                  onClick={() => handleIssueClick("Network Problems")}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <Typography variant="h5" color="blue-gray">
                       Network Problems
@@ -401,137 +444,65 @@ export default function AdminPage() {
                 </Card>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="col-span-2 shadow-lg rounded-xl overflow-hidden bg-white p-4">
-                <Typography variant="h5" color="blue-gray" className="mb-4">
-                  Announcements
-                </Typography>
-                <div className="mb-4 flex items-center">
-                  <Input
-                    type="text"
-                    label="New Announcement"
-                    value={newAnnouncement}
-                    onChange={(e) => setNewAnnouncement(e.target.value)}
-                    className="flex-grow mr-2"
-                  />
-                  <IconButton
-                    onClick={handleAddAnnouncement}
-                    color="blue"
-                    ripple="light"
-                  >
-                    <PaperAirplaneIcon className="h-5 w-5" />
-                  </IconButton>
-                </div>
-                <div className="max-h-[400px] overflow-y-auto">
-                  {announcements.map((announcement) => (
-                    <div
-                      key={announcement.id}
-                      className="mb-4 border-b pb-4 last:border-b-0"
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          {userProfile && userProfile.photoURL ? (
-                            <Image
-                              src={userProfile.photoURL}
-                              alt={userProfile.name}
-                              className="w-8 h-8 rounded-full mr-2 object-cover"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-2">
-                              {announcement.postedBy[0].toUpperCase()}
-                            </div>
-                          )}
-                          <div>
-                            <Typography variant="small" className="font-medium">
-                              {announcement.postedBy}
-                            </Typography>
-                            <Typography variant="small" color="gray">
-                              {formatDate(announcement.timestamp.toDate())}
-                            </Typography>
-                          </div>
-                        </div>
-                        <Menu placement="bottom-end">
-                          <MenuHandler>
-                            <IconButton variant="text" color="blue-gray">
-                              <EllipsisVerticalIcon className="h-5 w-5" />
-                            </IconButton>
-                          </MenuHandler>
-                          <MenuList>
-                            <MenuItem
-                              onClick={() => {
-                                setEditingId(announcement.id);
-                                setEditContent(announcement.content);
-                              }}
-                            >
-                              Edit
-                            </MenuItem>
-                            <MenuItem
-                              onClick={() =>
-                                handleDeleteAnnouncement(announcement.id)
-                              }
-                            >
-                              Delete
-                            </MenuItem>
-                          </MenuList>
-                        </Menu>
-                      </div>
-                      {editingId === announcement.id ? (
-                        <div className="flex items-center">
-                          <Input
-                            type="text"
-                            value={editContent}
-                            onChange={(e) => setEditContent(e.target.value)}
-                            className="flex-grow"
-                          />
-                          <IconButton
-                            color="green"
-                            ripple="light"
-                            onClick={() =>
-                              handleEditAnnouncement(
-                                announcement.id,
-                                editContent
-                              )
-                            }
-                            className="ml-2"
-                          >
-                            <CheckIcon className="h-5 w-5" />
-                          </IconButton>
-                          <IconButton
-                            color="red"
-                            ripple="light"
-                            onClick={() => setEditingId(null)}
-                            className="ml-2"
-                          >
-                            <XMarkIcon className="h-5 w-5" />
-                          </IconButton>
-                        </div>
-                      ) : (
-                        <>
-                          <Typography variant="paragraph">
-                            {announcement.content}
-                          </Typography>
-                          {announcement.edited && (
-                            <Typography
-                              variant="small"
-                              color="gray"
-                              className="mt-1"
-                            >
-                              Edited:{" "}
-                              {formatDate(announcement.editedAt.toDate())}
-                            </Typography>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <div className="col-span-1">{renderCalendar()}</div>
-            </div>
+
+            <Card className="col-span-2 shadow-lg rounded-xl overflow-hidden bg-white p-4">
+              <AnnouncementComponent
+                userProfile={userProfile}
+                announcements={announcements}
+                onAddAnnouncement={async (announcementData) => {
+                  try {
+                    await addDoc(collection(db, "announcements"), {
+                      ...announcementData,
+                      timestamp: new Date(),
+                      postedBy: userProfile ? userProfile.name : user.email,
+                      edited: false,
+                      editedAt: null,
+                    });
+                    toast.success("Announcement added successfully");
+                  } catch (error) {
+                    toast.error("Failed to add announcement");
+                  }
+                }}
+                onEditAnnouncement={handleEditAnnouncement}
+                onDeleteAnnouncement={handleDeleteAnnouncement}
+              />
+            </Card>
           </div>
         </main>
       </div>
       <ToastContainer />
+      <Dialog
+        open={isModalOpen}
+        handler={() => setIsModalOpen(false)}
+        size="lg"
+      >
+        <DialogHeader>{selectedIssue?.type} Details</DialogHeader>
+        <DialogBody divider className="max-h-[400px] overflow-y-auto">
+          {selectedIssue?.tickets.map((ticket, index) => (
+            <div key={ticket.id} className="mb-4 p-4 border-b last:border-b-0">
+              <Typography variant="h6">Name: {ticket.studentName}</Typography>
+              <Typography color="gray">
+                Computer Number: {ticket.computerNumber}
+              </Typography>
+              <Typography color="gray">Date: {ticket.date}</Typography>
+              <Typography color="gray">Time: {ticket.timeIn}</Typography>
+              <Typography color="gray">
+                Description: {ticket.description}
+              </Typography>
+            </div>
+          ))}
+          {selectedIssue?.tickets.length === 0 && (
+            <Typography color="gray" className="text-center">
+              No issues reported
+            </Typography>
+          )}
+        </DialogBody>
+        <DialogFooter>
+          <Button variant="text" onClick={() => setIsModalOpen(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </div>
   ) : null;
 }

@@ -90,6 +90,7 @@ export default function PickClassroom() {
     return unsubscribe;
   };
 
+  // Modify the useEffect that listens for lobby deletion
   useEffect(() => {
     if (selectedLab) {
       const unsubscribe = onSnapshot(
@@ -118,7 +119,13 @@ export default function PickClassroom() {
               });
             }
 
-            router.push("/user");
+            // Reset states and show alert
+            setSelectedLab(null);
+            setSelectedTeacher(null);
+            setActiveStep(0);
+            toast.info(
+              "The classroom session has ended. Please select another classroom."
+            );
           }
         }
       );
@@ -202,11 +209,13 @@ export default function PickClassroom() {
   };
 
   const formatTime = (hours, minutes) => {
+    const seconds = new Date().getSeconds();
     const ampm = hours >= 12 ? "PM" : "AM";
     let formattedHours = hours % 12;
     formattedHours = formattedHours ? formattedHours : 12;
     const formattedMinutes = minutes.toString().padStart(2, "0");
-    return `${formattedHours}:${formattedMinutes} ${ampm}`;
+    const formattedSeconds = seconds.toString().padStart(2, "0");
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds} ${ampm}`;
   };
 
   const handleEndSession = async () => {
@@ -312,7 +321,6 @@ export default function PickClassroom() {
                     <h2 className="text-black text-sm font-normal mb-2">
                       Lobby Code:
                     </h2>
-
                     <Input
                       className="mb-3"
                       label="Enter the Pin Code"
@@ -325,6 +333,13 @@ export default function PickClassroom() {
                       color="blue"
                     >
                       Submit
+                    </Button>
+                    <Button
+                      className="mt-3"
+                      onClick={handleSubmitPinCode}
+                      color="blue"
+                    >
+                      Back
                     </Button>
                   </Card>
                 </div>

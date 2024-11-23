@@ -56,6 +56,7 @@ export default function Generatelobby() {
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [participantCount, setParticipantCount] = useState(0);
 
   const [computerLab, setComputerLab] = useRecoilState(ComputerLabState);
 
@@ -256,6 +257,7 @@ export default function Generatelobby() {
           const studentsData = Object.values(uniqueStudents);
 
           setStudents(studentsData);
+          setParticipantCount(studentsData.length); // Add this line
           localStorage.setItem("students", JSON.stringify(studentsData));
 
           const userQuery = query(
@@ -321,6 +323,18 @@ export default function Generatelobby() {
         computerLab: formData.computerLab,
       });
 
+      // Add this in the saveFormDataToFirestore function after creating the lobby
+      await addDoc(collection(db, "teacherLogs"), {
+        teacherName: formData.name,
+        teacherEmail: formData.email,
+        course: formData.course,
+        classSection: formData.classSection,
+        computerLab: formData.computerLab,
+        action: "Created Classroom",
+        date: formattedDate,
+        time: formattedTime,
+      });
+
       setPin(pin);
       setFormSubmitted(true);
       if (typeof window !== "undefined") {
@@ -339,8 +353,15 @@ export default function Generatelobby() {
     }
   };
 
-  const endSession = async (pin) => {
+  const endSession = async (pin, isSaving = false) => {
     try {
+      const promptMessage = isSaving
+        ? "Are you sure you want to save this session and proceed to attendance form?"
+        : "Are you sure you want to end this session?";
+
+      const confirmed = window.confirm(promptMessage);
+      if (!confirmed) return;
+
       const user = auth.currentUser;
       if (!user) {
         console.error("No user is currently logged in");
@@ -385,16 +406,23 @@ export default function Generatelobby() {
       const lobbyDoc = lobbyQuerySnapshot.docs[0];
       await deleteDoc(lobbyDoc.ref);
 
-      console.log("Session ended successfully with timeouts recorded");
-      localStorage.clear();
-      // Clear all stored data
-      localStorage.removeItem("students");
-      localStorage.removeItem("name");
-      localStorage.removeItem("email");
-      localStorage.removeItem("classSection");
-      localStorage.removeItem("computerLab");
-      localStorage.removeItem("formSubmitted");
-      localStorage.removeItem("pin");
+      if (isSaving) {
+        router.push("/teacher/attendance_form");
+      } else {
+        setActiveStep(0);
+        localStorage.clear();
+        setStudents([]);
+        setFormData({
+          name: "",
+          email: "",
+          classSection: "",
+          computerLab: "",
+          course: "",
+        });
+        setFormSubmitted(false);
+        setPin(null);
+        setComputerLab("");
+      }
 
       // Reset states
       setStudents([]);
@@ -428,6 +456,31 @@ export default function Generatelobby() {
     return true;
   };
 
+  function generateMockStudents(count) {
+    const mockStudents = [];
+    for (let i = 1; i <= count; i++) {
+      mockStudents.push({
+        ccaEmail: `student${i}@cca.edu.ph`,
+        studentName: `Student ${i}`,
+        lobbypassword: pin,
+      });
+    }
+    return mockStudents;
+  }
+
+  function simulateStudentJoining() {
+    const mockStudents = generateMockStudents(40);
+    const currentStudents = [...students];
+
+    mockStudents.forEach((student, index) => {
+      setTimeout(() => {
+        currentStudents.push(student);
+        setStudents([...currentStudents]);
+        localStorage.setItem("students", JSON.stringify(currentStudents));
+      }, index * 500); // Adds a student every 500ms
+    });
+  }
+
   return isAuthorized ? (
     <>
       <div className="flex flex-col bg-blue-gray-50 min-h-screen">
@@ -436,7 +489,7 @@ export default function Generatelobby() {
           <Sidebar />
           <div className="flex-1 p-4 sm:ml-64">
             <div className="container mx-auto px-4 py-8">
-              <Card className="w-full max-w-5xl mx-auto shadow-lg p-8">
+              <Card className="w-full max-w-5xl mx-auto max-h-4xl shadow-lg p-8">
                 <div className="p-6">
                   <Stepper
                     activeStep={activeStep}
@@ -449,9 +502,6 @@ export default function Generatelobby() {
                     </Step>
                     <Step>
                       <FaUsers className="h-5 w-5" />
-                    </Step>
-                    <Step>
-                      <FaCheckCircle className="h-5 w-5" />
                     </Step>
                   </Stepper>
 
@@ -559,61 +609,47 @@ export default function Generatelobby() {
                         <Typography variant="h6" className="mb-4">
                           Computer Lab: {computerLab}
                         </Typography>
-                        <Typography variant="h6" className="mb-2">
-                          Student List:
-                        </Typography>
-                        <div className="max-h-64 overflow-y-auto">
-                          {students.map((student, index) => (
-                            <div key={index} className="flex items-center mb-2">
-                              <Image
-                                src={
-                                  profileUrls[student.ccaEmail] || "/Avatar.jpg"
-                                }
-                                width={40}
-                                height={40}
-                                alt="Student Avatar"
-                                className="rounded-full mr-2"
-                              />
-                              <Typography>{student.studentName}</Typography>
-                            </div>
-                          ))}
+                        <div className="flex gap-4 mt-2">
+                          <Button
+                            onClick={() => endSession(pin, true)}
+                            color="blue"
+                            fullWidth
+                          >
+                            Save Session
+                          </Button>
+                          <Button
+                            onClick={() => endSession(pin, false)}
+                            color="blue"
+                            fullWidth
+                          >
+                            End Session
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => {
-                            endSession(pin);
-                          }}
-                          color="blue"
-                          fullWidth
-                          className="mt-4"
-                        >
-                          Saved Session
-                        </Button>
                       </Card>
                     </div>
                   )}
-
-                  {activeStep === 2 && (
-                    <div className="text-center space-y-6">
+                </div>
+                <Typography variant="h6" className="mb-2">
+                  Student Participants ({participantCount})
+                </Typography>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
+                  {students.map((student, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center p-2 bg-white rounded-lg shadow"
+                    >
                       <Image
-                        src="/thankyou.jpeg"
-                        width={200}
-                        height={200}
-                        alt="Thank You Picture"
-                        className="mx-auto rounded-full shadow-md"
+                        src={profileUrls[student.ccaEmail] || "/Avatar.jpg"}
+                        width={60}
+                        height={60}
+                        alt="Student Avatar"
+                        className="rounded-full mb-2"
                       />
-                      <Typography variant="h5" color="blue-gray">
-                        Save the Session Successfully
+                      <Typography className="text-center text-sm">
+                        {student.studentName}
                       </Typography>
-                      <Button
-                        onClick={() => {
-                          router.push("/teacher");
-                        }}
-                        color="blue"
-                      >
-                        Return to Teacher Homepage
-                      </Button>
                     </div>
-                  )}
+                  ))}
                 </div>
               </Card>
             </div>

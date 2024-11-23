@@ -31,6 +31,7 @@ import {
 
 import { auth, db } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import AnnouncementView from "./AnnouncementView";
 
 export default function UserPage() {
   const [user, loading, error] = useAuthState(auth);
@@ -303,19 +304,7 @@ export default function UserPage() {
                 color="border-l-yellow-500"
               >
                 {announcements.length > 0 ? (
-                  <ul className="space-y-2">
-                    {announcements.map((announcement) => (
-                      <li key={announcement.id} className="border-b pb-2">
-                        <Typography variant="small" className="font-medium">
-                          {announcement.content}
-                        </Typography>
-                        <Typography variant="small" color="gray">
-                          Posted by: {announcement.postedBy} on{" "}
-                          {formatDate(announcement.timestamp.toDate())}
-                        </Typography>
-                      </li>
-                    ))}
-                  </ul>
+                  <AnnouncementView announcements={announcements} />
                 ) : (
                   <Typography>No announcements at this time.</Typography>
                 )}

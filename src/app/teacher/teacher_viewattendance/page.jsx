@@ -133,15 +133,22 @@ export default function ViewAttendance() {
     if (inPeriod === "AM" && startHours === 12) startHours = 0;
     if (outPeriod === "AM" && endHours === 12) endHours = 0;
 
-    const totalMinutes =
-      endHours * 60 +
-      parseInt(outMinutes) -
-      (startHours * 60 + parseInt(inMinutes));
+    const totalSeconds =
+      endHours * 3600 +
+      parseInt(outMinutes) * 60 -
+      (startHours * 3600 + parseInt(inMinutes) * 60);
 
-    const hours = Math.floor(Math.abs(totalMinutes) / 60);
-    const minutes = Math.abs(totalMinutes) % 60;
+    const hours = Math.floor(Math.abs(totalSeconds) / 3600);
+    const minutes = Math.floor((Math.abs(totalSeconds) % 3600) / 60);
+    const seconds = Math.abs(totalSeconds) % 60;
 
-    return hours === 0 ? `${minutes}m` : `${hours}h ${minutes}m`;
+    if (hours === 0) {
+      if (minutes === 0) {
+        return `${seconds}s`;
+      }
+      return `${minutes}m ${seconds}s`;
+    }
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
 
   const downloadCSV = (students, section) => {
@@ -315,7 +322,7 @@ export default function ViewAttendance() {
                   <div className="relative">
                     <Input
                       type="text"
-                      placeholder="Search students..."
+                      label="Search students"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pr-10"

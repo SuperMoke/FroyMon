@@ -271,6 +271,15 @@ export default function ComputerTicket() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleStatusChange = async (status) => {
+      if (status === "Closed") {
+        const isConfirmed = window.confirm(
+          "Are you sure you want to close this ticket? This action cannot be undone."
+        );
+        if (!isConfirmed) {
+          return;
+        }
+      }
+
       await updateTicketStatus(ticket.id, status);
       setIsMenuOpen(false);
       setEditingTicketId(null);
@@ -309,7 +318,7 @@ export default function ComputerTicket() {
             </ListItem>
           </MenuHandler>
           <MenuList>
-            {["Pending", "On-Going", "Closed"].map((status) => (
+            {["On-Going", "Pending", "Closed"].map((status) => (
               <MenuItem key={status} onClick={() => handleStatusChange(status)}>
                 {status}
               </MenuItem>
@@ -475,16 +484,22 @@ export default function ComputerTicket() {
                               {ticket.studentName}
                             </Typography>
                           </td>
-                          <td className="p-4">
+                          <td>
                             <TicketStatusList ticket={ticket} />
                           </td>
                           <td className="p-4">
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
-                              {ticket.remarks || "No Remarks"}
+                              {Array.isArray(ticket.remarks)
+                                ? ticket.remarks.map((remark, index) => (
+                                    <div key={index} className="mb-2">
+                                      {remark.text}
+                                    </div>
+                                  ))
+                                : "No Remarks"}
                             </Typography>
                           </td>
 

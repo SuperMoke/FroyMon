@@ -68,8 +68,8 @@ export default function Audit_Trails() {
 
   useEffect(() => {
     const fetchAuditLogs = () => {
-      const teacherQuery = query(
-        collection(db, "lobbies"),
+      const teacherLogsQuery = query(
+        collection(db, "teacherLogs"),
         orderBy("date", "desc"),
         limit(50)
       );
@@ -120,19 +120,21 @@ export default function Audit_Trails() {
         updateAuditLogs(ticketLogs);
       });
 
-      const unsubscribeTeacher = onSnapshot(teacherQuery, (snapshot) => {
-        const teacherLogs = snapshot.docs.map((doc) => {
-          const data = doc.data();
-          const timestamp = new Date(`${data.date} ${data.time}`);
-          return {
-            id: doc.id,
-            timestamp: `${data.date} ${data.time}`,
-            type: "Teacher",
-            content: `${data.name} created classroom: ${data.classSection}`,
-          };
-        });
-        updateAuditLogs(teacherLogs);
-      });
+      const unsubscribeTeacherLogs = onSnapshot(
+        teacherLogsQuery,
+        (snapshot) => {
+          const teacherLogs = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              timestamp: `${data.date} ${data.time}`,
+              type: "Teacher",
+              content: `${data.teacherName} ${data.action}: ${data.classSection} in ${data.computerLab}`,
+            };
+          });
+          updateAuditLogs(teacherLogs);
+        }
+      );
 
       const unsubscribeStudent = onSnapshot(studentQuery, (snapshot) => {
         const studentLogs = snapshot.docs.map((doc) => {
@@ -149,7 +151,7 @@ export default function Audit_Trails() {
       });
 
       return () => {
-        unsubscribeTeacher();
+        unsubscribeTeacherLogs();
         unsubscribeStudent();
         unsubscribeTicketQuery();
         unsubscribeAccountQuery();
@@ -293,9 +295,10 @@ export default function Audit_Trails() {
                 </Typography>
                 <div>
                   <Select
+                    label="Filter by Type"
                     value={filterType}
                     onChange={(value) => setFilterType(value)}
-                    className="p-2 border border-gray-300 rounded"
+                    className="w-full"
                   >
                     <Option value="All">All</Option>
                     <Option value="Admin">Admin</Option>
