@@ -361,88 +361,79 @@ export default function AdminPage() {
   };
 
   return isAuthorized ? (
-    <div className="flex flex-col min-h-screen bg-blue-gray-50">
+    <div className=" min-h-screen bg-blue-gray-50">
       <Header />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-4 sm:ml-64">
-          <IconButton
-            size="lg"
-            color="blue-gray"
-            variant="text"
-            className="sm:hidden fixed top-2 left-2 z-40"
-          >
-            <Bars3Icon className="h-6 w-6" />
-          </IconButton>
           <div className="container mx-auto">
-            <h2 className="text-center text-4xl font-bold mb-5">
-              Admin Dashboard
-            </h2>
-            <div className="mb-8">
-              <h2 className="text-center text-2xl font-bold mb-3">
-                Computer Status Overview
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card
-                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
-                  onClick={() => handleIssueClick("Hardware Issues")}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <Typography variant="h5" color="blue-gray">
-                      Hardware Issues
-                    </Typography>
-                    <WrenchIcon className="h-6 w-6 text-red-500" />
-                  </div>
-                  <Typography className="text-2xl font-bold">
-                    {statusCounts.hardwareIssues}
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+              <Typography
+                variant="h3"
+                color="blue-gray"
+                className="mb-4 md:mb-0"
+              >
+                Dashboard
+              </Typography>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+              <Card
+                className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                onClick={() => handleIssueClick("Hardware Issues")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <Typography variant="h5" color="blue-gray">
+                    Hardware Issues
                   </Typography>
-                  <Progress
-                    value={(statusCounts.hardwareIssues / totalComputers) * 100}
-                    color="red"
-                    className="mt-2"
-                  />
-                </Card>
-                <Card
-                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
-                  onClick={() => handleIssueClick("Software Issues")}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <Typography variant="h5" color="blue-gray">
-                      Software Issues
-                    </Typography>
-                    <CodeBracketIcon className="h-6 w-6 text-yellow-500" />
-                  </div>
-                  <Typography className="text-2xl font-bold">
-                    {statusCounts.softwareIssues}
+                  <WrenchIcon className="h-6 w-6 text-red-500" />
+                </div>
+                <Typography className="text-2xl font-bold">
+                  {statusCounts.hardwareIssues}
+                </Typography>
+                <Progress
+                  value={(statusCounts.hardwareIssues / totalComputers) * 100}
+                  color="red"
+                  className="mt-2"
+                />
+              </Card>
+              <Card
+                className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                onClick={() => handleIssueClick("Software Issues")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <Typography variant="h5" color="blue-gray">
+                    Software Issues
                   </Typography>
-                  <Progress
-                    value={(statusCounts.softwareIssues / totalComputers) * 100}
-                    color="yellow"
-                    className="mt-2"
-                  />
-                </Card>
-                <Card
-                  className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
-                  onClick={() => handleIssueClick("Network Problems")}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <Typography variant="h5" color="blue-gray">
-                      Network Problems
-                    </Typography>
-                    <WifiIcon className="h-6 w-6 text-orange-500" />
-                  </div>
-                  <Typography className="text-2xl font-bold">
-                    {statusCounts.networkProblems}
+                  <CodeBracketIcon className="h-6 w-6 text-yellow-500" />
+                </div>
+                <Typography className="text-2xl font-bold">
+                  {statusCounts.softwareIssues}
+                </Typography>
+                <Progress
+                  value={(statusCounts.softwareIssues / totalComputers) * 100}
+                  color="yellow"
+                  className="mt-2"
+                />
+              </Card>
+              <Card
+                className="w-full bg-white shadow-lg rounded-xl p-6 cursor-pointer hover:shadow-xl transition-all transform hover:scale-105"
+                onClick={() => handleIssueClick("Network Problems")}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <Typography variant="h5" color="blue-gray">
+                    Network Problems
                   </Typography>
-                  <Progress
-                    value={
-                      (statusCounts.networkProblems / totalComputers) * 100
-                    }
-                    color="orange"
-                    className="mt-2"
-                  />
-                </Card>
-              </div>
+                  <WifiIcon className="h-6 w-6 text-orange-500" />
+                </div>
+                <Typography className="text-2xl font-bold">
+                  {statusCounts.networkProblems}
+                </Typography>
+                <Progress
+                  value={(statusCounts.networkProblems / totalComputers) * 100}
+                  color="orange"
+                  className="mt-2"
+                />
+              </Card>
             </div>
 
             <Card className="col-span-2 shadow-lg rounded-xl overflow-hidden bg-white p-4">

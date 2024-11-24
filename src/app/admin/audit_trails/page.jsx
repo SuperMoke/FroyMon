@@ -14,6 +14,7 @@ import {
   MenuItem,
   Select,
   Option,
+  Chip,
 } from "@material-tailwind/react";
 import {
   addDoc,
@@ -197,83 +198,73 @@ export default function Audit_Trails() {
   }, [filterType, allLogs]);
 
   const renderAuditLogsTable = () => (
-    <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
-      <div className="bg-blue-500 p-4 flex justify-between items-center">
-        <Typography variant="h5" color="white">
-          System Log
-        </Typography>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-blue-gray-50">
-              <th className="border-b border-blue-gray-100 p-4">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-bold leading-none opacity-70"
-                >
-                  Timestamp
-                </Typography>
-              </th>
-              <th className="border-b border-blue-gray-100 p-4">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-bold leading-none opacity-70"
-                >
-                  Type
-                </Typography>
-              </th>
-              <th className="border-b border-blue-gray-100 p-4">
-                <Typography
-                  variant="small"
-                  color="blue-gray"
-                  className="font-bold leading-none opacity-70"
-                >
-                  Content
-                </Typography>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {auditLogs.map((log, index) => (
-              <tr
-                key={log.id}
-                className={index % 2 === 0 ? "bg-blue-gray-50/50" : ""}
+    <Card className="overflow-x-auto px-0">
+      <table className="w-full table-auto text-left">
+        <thead>
+          <tr>
+            <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+              <Typography
+                variant="paragraph"
+                color="blue-gray"
+                className="font-semibold"
               >
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {log.timestamp}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {log.type}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {log.content}
-                  </Typography>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                Timestamp
+              </Typography>
+            </th>
+            <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+              <Typography
+                variant="paragraph"
+                color="blue-gray"
+                className="font-semibold"
+              >
+                Type
+              </Typography>
+            </th>
+            <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-2/4">
+              <Typography
+                variant="paragraph"
+                color="blue-gray"
+                className="font-semibold"
+              >
+                Content
+              </Typography>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {auditLogs.map((log, index) => (
+            <tr
+              key={log.id}
+              className={
+                index !== auditLogs.length - 1
+                  ? "border-b border-blue-gray-50"
+                  : ""
+              }
+            >
+              <td className="p-4 w-1/4">
+                <Typography variant="paragraph">{log.timestamp}</Typography>
+              </td>
+              <td className="p-4 w-2/4">
+                <Chip
+                  variant="ghost"
+                  size="md"
+                  value={log.type}
+                  color={
+                    log.type === "Admin"
+                      ? "blue"
+                      : log.type === "Teacher"
+                      ? "green"
+                      : "gray"
+                  }
+                />
+              </td>
+              <td className="p-4 w-1/4">
+                <Typography variant="paragraph">{log.content}</Typography>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 

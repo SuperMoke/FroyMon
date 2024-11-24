@@ -16,6 +16,7 @@ import {
   Option,
   Collapse,
   Textarea,
+  CardFooter,
 } from "@material-tailwind/react";
 import {
   collection,
@@ -75,6 +76,8 @@ export default function ComputerTicket() {
   const [actionMode, setActionMode] = useState({});
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [selectedTicketHistory, setSelectedTicketHistory] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const generateRandomTicketData = () => {
     const computerLabs = [
@@ -329,6 +332,17 @@ export default function ComputerTicket() {
     );
   };
 
+  // Add this computed value before the return statement
+  const paginatedTickets = filteredTicketData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Add this useEffect to reset pagination when search/filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchComputerNumber, filterComputerLab, filterComputerStatus]);
+
   return isAuthorized ? (
     <>
       <div className="bg-blue-gray-50 min-h-screen">
@@ -401,129 +415,128 @@ export default function ComputerTicket() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4 mb-4"></div>
-              <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full table-auto">
-                    <thead>
-                      <tr className="bg-blue-gray-50">
-                        {TABLE_HEAD.map((head) => (
-                          <th
-                            key={head}
-                            className="border-b border-blue-gray-100 p-4"
-                          >
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-bold leading-none opacity-70"
-                            >
-                              {head}
-                            </Typography>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTicketData.map((ticket, index) => (
-                        <tr
-                          key={ticket.id}
-                          className={
-                            index % 2 === 0 ? "bg-blue-gray-50/50" : ""
-                          }
+              <Card className="overflow-x-auto px-0">
+                <table className="w-full table-auto text-left">
+                  <thead>
+                    <tr>
+                      {TABLE_HEAD.map((head) => (
+                        <th
+                          key={head}
+                          className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
                         >
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.date} & {ticket.timeIn}
-                            </Typography>
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.computerLab}
-                            </Typography>
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.computerNumber}
-                            </Typography>
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.computerStatus}
-                            </Typography>
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.description}
-                            </Typography>
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal text-center"
-                            >
-                              {ticket.studentName}
-                            </Typography>
-                          </td>
-                          <td>
-                            <TicketStatusList ticket={ticket} />
-                          </td>
-                          <td className="p-4">
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-normal"
-                            >
-                              {Array.isArray(ticket.remarks)
-                                ? ticket.remarks.map((remark, index) => (
-                                    <div key={index} className="mb-2">
-                                      {remark.text}
-                                    </div>
-                                  ))
-                                : "No Remarks"}
-                            </Typography>
-                          </td>
-
-                          <td className="p-4">
-                            <RemarksSection
-                              ticket={ticket}
-                              updateTicketRemarks={updateTicketRemarks}
-                              user={user}
-                            />
-                          </td>
-                          <td className="p-4">
-                            <Button
-                              variant="text"
-                              color="blue"
-                              onClick={() => handleViewHistory(ticket.id)}
-                            >
-                              View History
-                            </Button>
-                          </td>
-                        </tr>
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-semibold"
+                          >
+                            {head}
+                          </Typography>
+                        </th>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedTickets.map((ticket, index) => (
+                      <tr
+                        key={ticket.id}
+                        className={
+                          index !== paginatedTickets.length - 1
+                            ? "border-b border-blue-gray-50"
+                            : ""
+                        }
+                      >
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.date} & {ticket.timeIn}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.computerLab}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.computerNumber}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.computerStatus}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.description}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {ticket.studentName}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <TicketStatusList ticket={ticket} />
+                        </td>
+                        <td className="p-4">
+                          <Typography variant="small">
+                            {Array.isArray(ticket.remarks)
+                              ? ticket.remarks.map((remark, index) => (
+                                  <div key={index} className="mb-2">
+                                    {remark.text}
+                                  </div>
+                                ))
+                              : "No Remarks"}
+                          </Typography>
+                        </td>
+                        <td className="p-4">
+                          <RemarksSection
+                            ticket={ticket}
+                            updateTicketRemarks={updateTicketRemarks}
+                            user={user}
+                          />
+                        </td>
+                        <td className="p-4">
+                          <Button
+                            variant="text"
+                            color="blue"
+                            onClick={() => handleViewHistory(ticket.id)}
+                          >
+                            View History
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+                  <Typography variant="small" color="blue-gray">
+                    Page {currentPage} of{" "}
+                    {Math.ceil(filteredTicketData.length / itemsPerPage)}
+                  </Typography>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="filled"
+                      color="black"
+                      size="sm"
+                      disabled={
+                        currentPage >=
+                        Math.ceil(filteredTicketData.length / itemsPerPage)
+                      }
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
               </Card>
             </div>
             <HistoryModal

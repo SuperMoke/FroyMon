@@ -97,11 +97,13 @@ export default function Admin_GenerateQR() {
                       Computer Number
                     </Typography>
                     <Input
-                      type="text"
+                      type="number"
                       label="Enter The Computer Number"
                       onChange={(e) => setComputerNumber(e.target.value)}
                       value={computerNumber}
                       required
+                      min="1"
+                      max="40"
                       className="w-full"
                     />
                   </div>
@@ -129,7 +131,7 @@ export default function Admin_GenerateQR() {
                   <Button
                     type="submit"
                     className="w-full flex items-center justify-center"
-                    color="blue"
+                    color="black"
                     size="lg"
                   >
                     <FaQrcode className="mr-2" />

@@ -36,6 +36,7 @@ export default function AdminProfile() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const fileInputRef = useRef();
 
   useEffect(() => {
     if (loading) return;

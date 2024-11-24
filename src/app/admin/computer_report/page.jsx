@@ -275,11 +275,10 @@ export default function ComputerReport() {
                 >
                   Computer Reports
                 </Typography>
-                <Button onClick={downloadPDF} className="mb-4" color="blue">
+                <Button onClick={downloadPDF} className="mb-4" color="black">
                   Download PDF
                 </Button>
               </div>
-
               <div
                 id="report-content"
                 ref={reportRef}
