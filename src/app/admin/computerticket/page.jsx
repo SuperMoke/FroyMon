@@ -436,77 +436,90 @@ export default function ComputerTicket() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedTickets.map((ticket, index) => (
-                      <tr
-                        key={ticket.id}
-                        className={
-                          index !== paginatedTickets.length - 1
-                            ? "border-b border-blue-gray-50"
-                            : ""
-                        }
-                      >
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.date} & {ticket.timeIn}
+                    {paginatedTickets.length > 0 ? (
+                      paginatedTickets.map((ticket, index) => (
+                        <tr
+                          key={ticket.id}
+                          className={
+                            index !== paginatedTickets.length - 1
+                              ? "border-b border-blue-gray-50"
+                              : ""
+                          }
+                        >
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.date} & {ticket.timeIn}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.computerLab}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.computerNumber}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.computerStatus}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.description}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {ticket.studentName}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <TicketStatusList ticket={ticket} />
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {Array.isArray(ticket.remarks)
+                                ? ticket.remarks.map((remark, index) => (
+                                    <div key={index} className="mb-2">
+                                      {remark.text}
+                                    </div>
+                                  ))
+                                : "No Remarks"}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <RemarksSection
+                              ticket={ticket}
+                              updateTicketRemarks={updateTicketRemarks}
+                              user={user}
+                            />
+                          </td>
+                          <td className="p-4">
+                            <Button
+                              variant="text"
+                              color="blue"
+                              onClick={() => handleViewHistory(ticket.id)}
+                            >
+                              View History
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={TABLE_HEAD.length}
+                          className="text-center py-10"
+                        >
+                          <Typography variant="h5" color="blue-gray">
+                            No data found
                           </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.computerLab}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.computerNumber}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.computerStatus}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.description}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {ticket.studentName}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <TicketStatusList ticket={ticket} />
-                        </td>
-                        <td className="p-4">
-                          <Typography variant="small">
-                            {Array.isArray(ticket.remarks)
-                              ? ticket.remarks.map((remark, index) => (
-                                  <div key={index} className="mb-2">
-                                    {remark.text}
-                                  </div>
-                                ))
-                              : "No Remarks"}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <RemarksSection
-                            ticket={ticket}
-                            updateTicketRemarks={updateTicketRemarks}
-                            user={user}
-                          />
-                        </td>
-                        <td className="p-4">
-                          <Button
-                            variant="text"
-                            color="blue"
-                            onClick={() => handleViewHistory(ticket.id)}
-                          >
-                            View History
-                          </Button>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
                 <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">

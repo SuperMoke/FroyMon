@@ -21,6 +21,7 @@ export default function ComputerReport() {
   const [user, loading, error] = useAuthState(auth);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [ticketData, setTicketData] = useState([]);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const [chartData, setChartData] = useState({
     labTickets: {},
@@ -242,21 +243,31 @@ export default function ComputerReport() {
     },
   };
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     const input = reportRef.current;
-    html2canvas(input, { scale: 2 })
-      .then((canvas) => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF("p", "mm", "a4");
-        const imgProps = pdf.getImageProperties(imgData);
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-        pdf.save("Computer_Report.pdf");
-      })
-      .catch((err) => {
-        console.error("Error generating PDF: ", err);
+    setIsDownloading(true);
+
+    try {
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
       });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save("Computer_Report.pdf");
+    } catch (error) {
+      console.error("Error generating PDF: ", error);
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return isAuthorized ? (
@@ -275,8 +286,39 @@ export default function ComputerReport() {
                 >
                   Computer Reports
                 </Typography>
-                <Button onClick={downloadPDF} className="mb-4" color="black">
-                  Download PDF
+                <Button
+                  onClick={downloadPDF}
+                  disabled={isDownloading}
+                  className="flex items-center space-x-2"
+                  color="black"
+                >
+                  {isDownloading ? (
+                    <>
+                      <svg
+                        className="animate-spin h-5 w-5 mr-2"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      <span>Downloading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Download PDF</span>
+                    </>
+                  )}
                 </Button>
               </div>
               <div

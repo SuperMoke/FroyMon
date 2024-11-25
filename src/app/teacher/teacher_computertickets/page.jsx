@@ -16,6 +16,7 @@ import {
   Option,
   Collapse,
   Textarea,
+  CardFooter,
 } from "@material-tailwind/react";
 import {
   collection,
@@ -61,6 +62,8 @@ export default function ComputerTicket() {
   const [filterComputerStatus, setFilterComputerStatus] = useState("");
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (loading) return;
@@ -100,8 +103,7 @@ export default function ComputerTicket() {
     const filtered = ticketData
       .filter((ticket) => {
         return (
-          ticket.ticketStatus === "Pending" &&
-          ticket.computerNumber.includes(searchComputerNumber) &&
+          String(ticket.computerNumber).includes(searchComputerNumber) &&
           (filterComputerLab === "" ||
             ticket.computerLab === filterComputerLab) &&
           (filterComputerStatus === "" ||
@@ -109,10 +111,8 @@ export default function ComputerTicket() {
         );
       })
       .sort((a, b) => {
-        // Create datetime strings for comparison
         const dateTimeA = new Date(`${a.date} ${a.timeIn}`);
         const dateTimeB = new Date(`${b.date} ${b.timeIn}`);
-        // Sort in descending order (most recent first)
         return dateTimeB - dateTimeA;
       });
 
@@ -123,6 +123,11 @@ export default function ComputerTicket() {
     filterComputerStatus,
     ticketData,
   ]);
+
+  const paginatedTickets = filteredTicketData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return isAuthorized ? (
     <>
@@ -196,40 +201,42 @@ export default function ComputerTicket() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-4 mb-4"></div>
-              <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full table-auto">
-                    <thead>
-                      <tr className="bg-blue-gray-50">
-                        {TABLE_HEAD.map((head) => (
-                          <th
-                            key={head}
-                            className="border-b border-blue-gray-100 p-4"
+              <Card className="overflow-x-auto px-0">
+                <table className="w-full table-auto text-left">
+                  <thead>
+                    <tr>
+                      {TABLE_HEAD.map((head) => (
+                        <th
+                          key={head}
+                          className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
+                        >
+                          <Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-semibold"
                           >
-                            <Typography
-                              variant="small"
-                              color="blue-gray"
-                              className="font-bold leading-none opacity-70"
-                            >
-                              {head}
-                            </Typography>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTicketData.map((ticket, index) => (
+                            {head}
+                          </Typography>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedTickets.length > 0 ? (
+                      paginatedTickets.map((ticket, index) => (
                         <tr
                           key={ticket.id}
                           className={
-                            index % 2 === 0 ? "bg-blue-gray-50/50" : ""
+                            index !== paginatedTickets.length - 1
+                              ? "border-b border-blue-gray-50"
+                              : ""
                           }
                         >
                           <td className="p-4">
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
                               {ticket.date} & {ticket.timeIn}
                             </Typography>
@@ -238,7 +245,7 @@ export default function ComputerTicket() {
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
                               {ticket.computerLab}
                             </Typography>
@@ -247,7 +254,7 @@ export default function ComputerTicket() {
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
                               {ticket.computerNumber}
                             </Typography>
@@ -256,7 +263,7 @@ export default function ComputerTicket() {
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
                               {ticket.computerStatus}
                             </Typography>
@@ -265,7 +272,7 @@ export default function ComputerTicket() {
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
                               {ticket.description}
                             </Typography>
@@ -274,26 +281,78 @@ export default function ComputerTicket() {
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal "
                             >
                               {ticket.studentName}
                             </Typography>
                           </td>
-                          <td className="p-4">{ticket.ticketStatus}</td>
                           <td className="p-4">
+                            {" "}
                             <Typography
                               variant="small"
                               color="blue-gray"
-                              className="font-normal text-center"
+                              className="font-normal"
                             >
-                              {ticket.remarks || "No Remarks"}
+                              {ticket.ticketStatus}
+                            </Typography>
+                          </td>
+                          <td className="p-4">
+                            <Typography variant="small">
+                              {Array.isArray(ticket.remarks)
+                                ? ticket.remarks.map((remark, index) => (
+                                    <div key={index} className="mb-2">
+                                      {remark.text} - {remark.user}
+                                    </div>
+                                  ))
+                                : typeof ticket.remarks === "object"
+                                ? ticket.remarks.text
+                                : "No Remarks"}
                             </Typography>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={TABLE_HEAD.length}
+                          className="text-center py-10"
+                        >
+                          <Typography variant="h5" color="blue-gray">
+                            No data found
+                          </Typography>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+                  <Typography variant="small" color="blue-gray">
+                    Page {currentPage} of{" "}
+                    {Math.ceil(filteredTicketData.length / itemsPerPage)}
+                  </Typography>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outlined"
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="filled"
+                      color="black"
+                      size="sm"
+                      disabled={
+                        currentPage >=
+                        Math.ceil(filteredTicketData.length / itemsPerPage)
+                      }
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </CardFooter>
               </Card>
             </div>
           </main>

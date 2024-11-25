@@ -183,122 +183,94 @@ export default function ViewAttendance() {
     document.body.removeChild(link);
   };
 
+  // Replace the existing renderTable function with this one
   const renderTable = (students, title) => (
-    <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
-      <div className="bg-blue-500 p-4 flex justify-between items-center">
-        <Typography variant="h5" color="white">
+    <Card className="overflow-x-auto px-0 mb-8">
+      <div className="flex justify-between items-center bg-blue-gray-50/50 p-4">
+        <Typography variant="h5" color="blue-gray">
           {title}
         </Typography>
         <Button
           onClick={() => downloadCSV(students, title)}
-          color="white"
+          color="black"
           variant="filled"
-          className="ml-auto"
         >
           Download CSV
         </Button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-blue-gray-50">
-              {TABLE_HEAD.map((head) => (
-                <th key={head} className="border-b border-blue-gray-100 p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-bold leading-none opacity-70"
-                  >
-                    {head}
-                  </Typography>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((student, index) => (
-              <tr
-                key={index}
-                className={index % 2 === 0 ? "bg-blue-gray-50/50" : ""}
+      <table className="w-full table-auto text-left">
+        <thead>
+          <tr>
+            {TABLE_HEAD.map((head) => (
+              <th
+                key={head}
+                className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
               >
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.studentName}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.ccaEmail}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.classSection}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.computerLab}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.timeIn}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.timeOut}
-                  </Typography>
-                </td>
-
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {calculateTotalTime(student.timeIn, student.timeOut)}
-                  </Typography>
-                </td>
-                <td className="p-4">
-                  <Typography
-                    variant="small"
-                    color="blue-gray"
-                    className="font-normal text-center"
-                  >
-                    {student.date}
-                  </Typography>
-                </td>
-              </tr>
+                <Typography
+                  variant="small"
+                  color="blue-gray"
+                  className="font-semibold"
+                >
+                  {head}
+                </Typography>
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((student, index) => (
+            <tr
+              key={index}
+              className={
+                index !== students.length - 1
+                  ? "border-b border-blue-gray-50"
+                  : ""
+              }
+            >
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.studentName}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.ccaEmail}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.classSection}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.computerLab}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.timeIn}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.timeOut}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {calculateTotalTime(student.timeIn, student.timeOut)}
+                </Typography>
+              </td>
+              <td className="p-4">
+                <Typography variant="small" color="blue-gray">
+                  {student.date}
+                </Typography>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </Card>
   );
 
@@ -309,49 +281,47 @@ export default function ViewAttendance() {
         <div className="flex flex-1">
           <Sidebar />
           <div className="flex-1 p-4 sm:ml-64">
-            <div className="container mx-auto px-4 py-8">
-              <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-                <Typography
-                  variant="h3"
-                  color="blue-gray"
-                  className="mb-4 md:mb-0"
-                >
-                  Attendance Records
-                </Typography>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="relative">
-                    <Input
-                      type="text"
-                      label="Search students"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pr-10"
-                    />
-                    <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
-                  </div>
-                  <div className="relative">
-                    <Input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="pr-5"
-                    />
-                  </div>
+            <div className="mb-4 flex justify-between items-center">
+              <Typography
+                variant="h3"
+                color="blue-gray"
+                className="mb-4 md:mb-0"
+              >
+                Attendance Records
+              </Typography>
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative">
+                  <Input
+                    type="text"
+                    label="Search students"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pr-10"
+                  />
+                  <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
+                </div>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="pr-5"
+                  />
                 </div>
               </div>
-              {Object.entries(filteredAttendanceData).length > 0 ? (
-                Object.entries(filteredAttendanceData).map(
-                  ([section, students]) =>
-                    renderTable(students, `Section ${section}`)
-                )
-              ) : (
-                <Card className="w-full mx-auto p-6 text-center">
-                  <Typography variant="h5" color="blue-gray">
-                    No attendance records found for the selected criteria.
-                  </Typography>
-                </Card>
-              )}
             </div>
+            {Object.entries(filteredAttendanceData).length > 0 ? (
+              Object.entries(filteredAttendanceData).map(
+                ([section, students]) =>
+                  renderTable(students, `Section ${section}`)
+              )
+            ) : (
+              <Card className="w-full mx-auto p-6 text-center">
+                <Typography variant="h5" color="blue-gray">
+                  No attendance records found for the selected criteria.
+                </Typography>
+              </Card>
+            )}
           </div>
         </div>
       </div>

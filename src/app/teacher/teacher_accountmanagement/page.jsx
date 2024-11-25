@@ -14,7 +14,11 @@ import {
   DialogBody,
   DialogFooter,
   Tooltip,
+  CardFooter,
+  Chip,
 } from "@material-tailwind/react";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+
 import { auth, db } from "../../firebase";
 import {
   createUserWithEmailAndPassword,
@@ -49,7 +53,7 @@ import "react-toastify/dist/ReactToastify.css";
 const Admin_CreateUser = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
+  const [role, setRole] = useState("Student");
   const [name, setName] = useState("");
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [users, setUsers] = useState([]);
@@ -59,6 +63,8 @@ const Admin_CreateUser = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (loading) return;
@@ -242,149 +248,122 @@ const Admin_CreateUser = () => {
   const filteredUsers = users.filter(
     (user) =>
       user.role === "Student" &&
-      user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   return isAuthorized ? (
     <>
-      <div className="bg-blue-gray-50 min-h-screen">
+      <div className="min-h-screen bg-blue-gray-50">
         <Header />
-        <div className="flex flex-1">
+        <div className="flex">
           <Sidebar />
-          <main className="flex-1 p-4 sm:ml-64">
-            <Typography variant="h2" className="mb-4 text-center">
-              Account Management
-            </Typography>
-            <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-              <div></div>
-              <div className="relative">
-                <Input
-                  type="text"
-                  placeholder="Search students..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10"
-                />
-                <FaSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-blue-gray-300" />
-              </div>
-            </div>
-            <Card className="w-full mb-8 shadow-lg rounded-lg overflow-hidden">
-              <div className="bg-blue-500 p-4 flex justify-between items-center">
-                <Button
-                  onClick={() => setOpenDialog(true)}
-                  color="white"
-                  variant="filled"
-                  className="ml-auto"
-                >
+          <main className="flex-1 p-6 ml-64">
+            <div className="mb-4 flex justify-between items-center">
+              <Typography variant="h3" color="blue-gray">
+                Account Management
+              </Typography>
+              <div className="flex items-center gap-4">
+                <Button onClick={() => setOpenDialog(true)} color="black">
                   Create Account
                 </Button>
+                <div className="w-72">
+                  <Input
+                    type="text"
+                    label="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    icon={<MagnifyingGlassIcon className="h-5 w-5" />}
+                  />
+                </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="bg-blue-gray-50">
-                      <th className="border-b border-blue-gray-100 p-4">
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-bold leading-none opacity-70"
-                        >
-                          Name
-                        </Typography>
-                      </th>
-                      <th className="border-b border-blue-gray-100 p-4">
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-bold leading-none opacity-70"
-                        >
-                          Email
-                        </Typography>
-                      </th>
-                      <th className="border-b border-blue-gray-100 p-4">
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-bold leading-none opacity-70"
-                        >
-                          Role
-                        </Typography>
-                      </th>
-                      <th className="border-b border-blue-gray-100 p-4">
-                        <Typography
-                          variant="small"
-                          color="blue-gray"
-                          className="font-bold leading-none opacity-70"
-                        >
-                          Action
-                        </Typography>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => (
-                      <tr
-                        key={user.id}
-                        className={
-                          user.role === "Student"
-                            ? "bg-blue-gray-50/50"
-                            : "bg-blue-gray-100/50"
-                        }
+            </div>
+
+            <Card className="overflow-x-auto px-0">
+              <table className="w-full table-auto text-left">
+                <thead>
+                  <tr>
+                    <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+                      <Typography
+                        variant="paragraph"
+                        color="blue-gray"
+                        className="font-semibold"
                       >
-                        <td className="p-4">
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal text-center"
-                          >
-                            {user.name}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal text-center"
-                          >
-                            {user.email}
-                          </Typography>
-                        </td>
-                        <td className="p-4">
-                          <Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal text-center"
-                          >
-                            {user.role}
-                          </Typography>
-                        </td>
-                        <td className="p-4 flex justify-center space-x-2">
-                          <Tooltip content="Edit User">
+                        Name
+                      </Typography>
+                    </th>
+                    <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+                      <Typography
+                        variant="paragraph"
+                        color="blue-gray"
+                        className="font-semibold"
+                      >
+                        Email
+                      </Typography>
+                    </th>
+                    <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+                      <Typography
+                        variant="paragraph"
+                        color="blue-gray"
+                        className="font-semibold"
+                      >
+                        Role
+                      </Typography>
+                    </th>
+                    <th className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4 w-1/4">
+                      <Typography
+                        variant="paragraph"
+                        color="blue-gray"
+                        className="font-semibold text-center"
+                      >
+                        Action
+                      </Typography>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginatedUsers.map((user, index) => (
+                    <tr
+                      key={user.id}
+                      className={
+                        index !== paginatedUsers.length - 1
+                          ? "border-b border-blue-gray-50"
+                          : ""
+                      }
+                    >
+                      <td className="p-4">
+                        <Typography variant="paragraph">{user.name}</Typography>
+                      </td>
+                      <td className="p-4">
+                        <Typography variant="paragraph">
+                          {user.email}
+                        </Typography>
+                      </td>
+                      <td className="p-4">
+                        <Chip
+                          variant="ghost"
+                          size="md"
+                          value={user.role}
+                          color="gray"
+                        />
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2 justify-center">
+                          <Tooltip content="Edit the User">
                             <IconButton
-                              size="sm"
-                              color="blue-gray"
                               variant="text"
                               onClick={() => handleEditUser(user)}
                             >
                               <PencilIcon className="h-5 w-5" />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip content="Delete User">
+                          <Tooltip content="Reset the Password">
                             <IconButton
-                              size="sm"
-                              color="blue-gray"
-                              variant="text"
-                              onClick={() =>
-                                handleDeleteUser(user.id, user.email)
-                              }
-                            >
-                              <TrashIcon className="h-5 w-5" />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip content="Reset Password">
-                            <IconButton
-                              size="sm"
-                              color="blue-gray"
                               variant="text"
                               onClick={() =>
                                 handleResetPassword(user.id, user.role)
@@ -393,12 +372,50 @@ const Admin_CreateUser = () => {
                               <LockClosedIcon className="h-5 w-5" />
                             </IconButton>
                           </Tooltip>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <Tooltip content="Delete the Account">
+                            <IconButton
+                              variant="text"
+                              onClick={() =>
+                                handleDeleteUser(user.id, user.email)
+                              }
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </IconButton>
+                          </Tooltip>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <CardFooter className="flex items-center justify-between border-t border-blue-gray-50 p-4">
+                <Typography variant="small" color="blue-gray">
+                  Page {currentPage} of{" "}
+                  {Math.ceil(filteredUsers.length / itemsPerPage)}
+                </Typography>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outlined"
+                    size="sm"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="filled"
+                    color="black"
+                    size="sm"
+                    disabled={
+                      currentPage >=
+                      Math.ceil(filteredUsers.length / itemsPerPage)
+                    }
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </CardFooter>
             </Card>
           </main>
         </div>
@@ -425,16 +442,6 @@ const Admin_CreateUser = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-
-            <Typography className="font-normal mb-2">Role:</Typography>
-            <Select
-              label="Select Role"
-              value={role}
-              onChange={(e) => setRole(e)}
-              required
-            >
-              <Option value="Student">Student</Option>
-            </Select>
           </form>
         </DialogBody>
         <DialogFooter>
@@ -465,17 +472,6 @@ const Admin_CreateUser = () => {
               onChange={(e) => setName(e.target.value)}
               required
             />
-
-            <Typography className="font-normal mb-2">Role:</Typography>
-            <Select
-              label="Select Role"
-              value={role}
-              onChange={(e) => setRole(e)}
-              required
-            >
-              <Option value="Student">Student</Option>
-              <Option value="Teacher">Teacher</Option>
-            </Select>
           </form>
         </DialogBody>
         <DialogFooter>

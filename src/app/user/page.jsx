@@ -199,13 +199,7 @@ export default function UserPage() {
       className={`p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 ${color}`}
     >
       <div className="flex items-center mb-4">
-        <div
-          className={`p-3 rounded-full ${color
-            .replace("border-l-", "bg-")
-            .replace("-500", "-100")}`}
-        >
-          {icon}
-        </div>
+        <div className="p-3 rounded-full">{icon}</div>
         <Typography variant="h5" className="ml-4 font-semibold">
           {title}
         </Typography>

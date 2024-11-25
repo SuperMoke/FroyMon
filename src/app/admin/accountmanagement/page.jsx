@@ -72,6 +72,9 @@ const Admin_CreateUser = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const TABLE_HEAD = ["Name", "Email", "Role", "Action"];
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -110,6 +113,13 @@ const Admin_CreateUser = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    if (!validateCcaEmail(email)) {
+      toast.error("Please use a valid CCA email address (@cca.edu.ph)");
+      setIsLoading(false);
+      return;
+    }
+
     let defaultPassword;
     switch (role) {
       case "Student":
@@ -137,7 +147,6 @@ const Admin_CreateUser = () => {
         console.log("User created successfully:", data.uid);
         toast.success("User created successfully!");
         setOpenDialog(false);
-
         setEmail("");
         setPassword("");
         setRole("");
@@ -148,17 +157,24 @@ const Admin_CreateUser = () => {
     } catch (error) {
       console.error("Error creating user:", error.message);
       toast.error("Error creating user!");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleFileUpload = async (e) => {
+    setIsBulkUploading(true);
     const file = e.target.files[0];
     const fileExtension = file.name.split(".").pop().toLowerCase();
 
-    if (fileExtension === "csv") {
-      handleCsvUpload(file);
-    } else if (["xlsx", "xls"].includes(fileExtension)) {
-      handleExcelUpload(file);
+    try {
+      if (fileExtension === "csv") {
+        await handleCsvUpload(file);
+      } else if (["xlsx", "xls"].includes(fileExtension)) {
+        await handleExcelUpload(file);
+      }
+    } finally {
+      setIsBulkUploading(false);
     }
   };
 
@@ -169,6 +185,10 @@ const Admin_CreateUser = () => {
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       const users = XLSX.utils.sheet_to_json(firstSheet);
+
+      if (!validateBulkEmails(users)) {
+        return;
+      }
 
       for (const user of users) {
         try {
@@ -212,6 +232,10 @@ const Admin_CreateUser = () => {
       header: true,
       complete: async (results) => {
         const users = results.data;
+
+        if (!validateBulkEmails(users)) {
+          return;
+        }
 
         for (const user of users) {
           try {
@@ -259,6 +283,13 @@ const Admin_CreateUser = () => {
   };
 
   const handleResetPassword = async (userId, userRole) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to reset the password this user?"
+    );
+
+    if (!isConfirmed) {
+      return; // Exit if user cancels
+    }
     let defaultPassword;
     switch (userRole) {
       case "Student":
@@ -296,6 +327,7 @@ const Admin_CreateUser = () => {
 
   const handleEditFormSubmit = async (e) => {
     e.preventDefault();
+    setIsEditLoading(true);
     try {
       const userDocRef = doc(db, "user", editUser.id);
       await updateDoc(userDocRef, {
@@ -313,7 +345,35 @@ const Admin_CreateUser = () => {
     } catch (error) {
       console.error("Error updating user:", error.message);
       toast.error("Error updating user!");
+    } finally {
+      setIsEditLoading(false);
     }
+  };
+
+  // Add this function before the return statement
+  const downloadTemplate = () => {
+    const template = [
+      {
+        name: "John Doe",
+        email: "john.doe@cca.edu.ph",
+        role: "Student",
+      },
+      {
+        name: "Jane Smith",
+        email: "jane.smith@cca.edu.ph",
+        role: "Teacher",
+      },
+      {
+        name: "Chris Brown",
+        email: "chrisbrown@cca.edu.ph",
+        role: "Admin",
+      },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(template);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+    XLSX.writeFile(workbook, "user_upload_template.xlsx");
   };
 
   const handleDeleteUser = async (userId) => {
@@ -365,6 +425,33 @@ const Admin_CreateUser = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
+  const validateCcaEmail = (email) => {
+    return email.toLowerCase().endsWith("@cca.edu.ph");
+  };
+
+  const handleOpenDialog = () => setOpenDialog(!openDialog);
+  const handleOpenEditDialog = () => setOpenEditDialog(!openEditDialog);
+  const handleOpenBulkDialog = () => setOpenBulkDialog(!openBulkDialog);
+
+  const validateBulkEmails = (users) => {
+    const validRoles = ["Student", "Teacher", "Admin"];
+
+    // Check both email and role validity
+    const invalidUsers = users.filter(
+      (user) =>
+        !user.email.toLowerCase().endsWith("@cca.edu.ph") ||
+        !validRoles.includes(user.role?.toLowerCase())
+    );
+
+    if (invalidUsers.length > 0) {
+      toast.error(
+        `Invalid entries found. Emails must end with @cca.edu.ph and roles must be Student, Teacher, or Admin.`
+      );
+      return false;
+    }
+    return true;
+  };
 
   return isAuthorized ? (
     <>
@@ -539,7 +626,7 @@ const Admin_CreateUser = () => {
           </main>
         </div>
       </div>
-      <Dialog open={openDialog} handler={setOpenDialog}>
+      <Dialog open={openDialog} handler={handleOpenDialog}>
         <DialogHeader>Create New Account</DialogHeader>
         <DialogBody>
           <form className="flex flex-col space-y-2">
@@ -575,20 +662,49 @@ const Admin_CreateUser = () => {
             </Select>
           </form>
         </DialogBody>
-        <DialogFooter>
+        <DialogFooter className="space-x-4">
           <Button
             variant="text"
-            color="red"
+            color="black"
             onClick={() => setOpenDialog(false)}
           >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleFormSubmit}>
-            Create
+          <Button
+            type="submit"
+            onClick={handleFormSubmit}
+            disabled={isLoading}
+            className="flex items-center space-x-2"
+          >
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Creating...</span>
+              </>
+            ) : (
+              <>
+                <span>Create Account</span>
+              </>
+            )}
           </Button>
         </DialogFooter>
+        <ToastContainer />
       </Dialog>
-      <Dialog open={openEditDialog} handler={setOpenEditDialog}>
+      <Dialog open={openEditDialog} handler={handleOpenEditDialog}>
         <DialogHeader>Edit User</DialogHeader>
         <DialogBody>
           <form className="flex flex-col space-y-2">
@@ -614,40 +730,77 @@ const Admin_CreateUser = () => {
             </Select>
           </form>
         </DialogBody>
-        <DialogFooter>
+        <DialogFooter className="space-x-4">
           <Button
             variant="text"
-            color="red"
+            color="black"
             onClick={() => setOpenEditDialog(false)}
           >
             Cancel
           </Button>
-          <Button type="submit" onClick={handleEditFormSubmit}>
-            Save
+          <Button
+            type="submit"
+            onClick={handleEditFormSubmit}
+            disabled={isEditLoading}
+          >
+            {isEditLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Saving...</span>
+              </>
+            ) : (
+              <span>Save</span>
+            )}
           </Button>
         </DialogFooter>
+        <ToastContainer />
       </Dialog>
 
-      <Dialog open={openBulkDialog} handler={setOpenBulkDialog}>
+      <Dialog open={openBulkDialog} handler={handleOpenBulkDialog}>
         <DialogHeader>Bulk Upload Account</DialogHeader>
         <DialogBody>
           <Typography color="gray" className="mb-4">
-            Upload a CSV and Excel file with details. It should have columns for
-            Name,Email and Role.The role values should be: Student, Teacher, or
-            Admin (case insensitive)
+            Upload a CSV or Excel file with details. It should have columns for
+            Name, Email and Role. The role values should be: Student, Teacher,
+            or Admin (case insensitive). Download the template?
+            <Button
+              color="gray"
+              variant="text"
+              size="sm"
+              className="w-fit"
+              onClick={downloadTemplate}
+            >
+              Click Here
+            </Button>
           </Typography>
-          <Input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            onChange={(e) => {
-              fileInputRef.current = e.target.files[0];
-            }}
-          />
+          <div className="flex flex-col gap-4">
+            <input
+              type="file"
+              accept=".csv,.xlsx,.xls"
+              onChange={(e) => {
+                fileInputRef.current = e.target.files[0];
+              }}
+            />
+          </div>
         </DialogBody>
         <DialogFooter>
           <Button
             variant="text"
-            color="red"
+            color="black"
             onClick={() => setOpenBulkDialog(false)}
           >
             Cancel
@@ -659,10 +812,33 @@ const Admin_CreateUser = () => {
                 handleFileUpload({ target: { files: [fileInputRef.current] } });
               }
             }}
+            disabled={isBulkUploading}
           >
-            Upload
+            {isBulkUploading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                <span>Processing...</span>
+              </>
+            ) : (
+              "Upload"
+            )}
           </Button>
         </DialogFooter>
+        <ToastContainer />
       </Dialog>
 
       <ToastContainer />

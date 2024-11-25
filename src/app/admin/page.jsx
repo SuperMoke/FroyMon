@@ -119,7 +119,7 @@ export default function AdminPage() {
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user && user.email) {
-        const usersRef = collection(db, "users");
+        const usersRef = collection(db, "user");
         const q = query(usersRef, where("email", "==", user.email));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {

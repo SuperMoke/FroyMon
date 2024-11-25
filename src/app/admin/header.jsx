@@ -21,17 +21,20 @@ import {
   collection,
   where,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { auth } from "../firebase";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { db } from "../firebase";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,6 +52,7 @@ export default function Header() {
               querySnapshot.forEach((doc) => {
                 const userData = doc.data();
                 setUserName(userData.name);
+                setEmail(userData.email);
                 setProfileUrl(userData.profileUrl);
               });
             } else {
@@ -74,6 +78,20 @@ export default function Header() {
         console.error("Error signing out:", error);
       });
   }
+
+  useEffect(() => {
+    const userRef = collection(db, "user");
+    const userQuery = query(userRef, where("email", "==", email));
+
+    const unsubscribe = onSnapshot(userQuery, (snapshot) => {
+      snapshot.forEach((doc) => {
+        const userData = doc.data();
+        setProfileUrl(userData.profileUrl);
+      });
+    });
+
+    return () => unsubscribe();
+  }, [email]);
 
   return (
     <header className="bg-blue-gray-50 shadow-md py-4 px-4 sm:px-10 flex justify-between items-center">

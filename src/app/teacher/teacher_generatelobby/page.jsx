@@ -189,7 +189,7 @@ export default function Generatelobby() {
         setStudents(studentsData);
         localStorage.setItem("students", JSON.stringify(studentsData));
 
-        // Fetch profile URLs if there are students
+        // Only fetch profile URLs if there are emails in the list
         if (emailList.length > 0) {
           const userQuery = query(
             collection(db, "user"),
@@ -357,7 +357,7 @@ export default function Generatelobby() {
     try {
       const promptMessage = isSaving
         ? "Are you sure you want to save this session and proceed to attendance form?"
-        : "Are you sure you want to end this session?";
+        : "Are you sure you want to end this session your data wont be saved?";
 
       const confirmed = window.confirm(promptMessage);
       if (!confirmed) return;
@@ -587,7 +587,7 @@ export default function Generatelobby() {
                                 }
                               }
                             }}
-                            color="blue"
+                            color="black"
                             fullWidth
                           >
                             Create Lobby
@@ -612,14 +612,14 @@ export default function Generatelobby() {
                         <div className="flex gap-4 mt-2">
                           <Button
                             onClick={() => endSession(pin, true)}
-                            color="blue"
+                            color="black"
                             fullWidth
                           >
                             Save Session
                           </Button>
                           <Button
                             onClick={() => endSession(pin, false)}
-                            color="blue"
+                            color="black"
                             fullWidth
                           >
                             End Session
@@ -629,28 +629,33 @@ export default function Generatelobby() {
                     </div>
                   )}
                 </div>
-                <Typography variant="h6" className="mb-2">
-                  Student Participants ({participantCount})
-                </Typography>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
-                  {students.map((student, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col items-center p-2 bg-white rounded-lg shadow"
-                    >
-                      <Image
-                        src={profileUrls[student.ccaEmail] || "/Avatar.jpg"}
-                        width={60}
-                        height={60}
-                        alt="Student Avatar"
-                        className="rounded-full mb-2"
-                      />
-                      <Typography className="text-center text-sm">
-                        {student.studentName}
-                      </Typography>
+
+                {activeStep === 1 && (
+                  <>
+                    <Typography variant="h6" className="mb-2">
+                      Student Participants ({participantCount})
+                    </Typography>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
+                      {students.map((student, index) => (
+                        <div
+                          key={index}
+                          className="flex flex-col items-center p-2 bg-white rounded-lg shadow"
+                        >
+                          <Image
+                            src={profileUrls[student.ccaEmail] || "/Avatar.jpg"}
+                            width={60}
+                            height={60}
+                            alt="Student Avatar"
+                            className="rounded-full mb-2"
+                          />
+                          <Typography className="text-center text-sm">
+                            {student.studentName}
+                          </Typography>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                )}
               </Card>
             </div>
           </div>

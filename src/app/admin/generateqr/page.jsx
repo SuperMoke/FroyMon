@@ -154,7 +154,7 @@ export default function Admin_GenerateQR() {
                     </Typography>
                     <Button
                       onClick={handleSaveAsImage}
-                      color="green"
+                      color="black"
                       size="lg"
                       className="w-full flex items-center justify-center"
                     >

@@ -9,12 +9,7 @@ const AnnouncementView = ({ announcements }) => {
   return (
     <div className="space-y-4">
       {announcements.map((announcement) => (
-        <div
-          key={announcement.id}
-          className={`p-4 rounded-lg border ${
-            announcement.important ? "border-red-300" : "border-gray-200"
-          }`}
-        >
+        <div key={announcement.id} className="p-4 rounded-lg border">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-3">
               {announcement.photoURL ? (
@@ -26,15 +21,15 @@ const AnnouncementView = ({ announcements }) => {
                   className="rounded-full"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-700 font-bold">
+                <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-black font-bold">
                   {announcement.postedBy[0].toUpperCase()}
                 </div>
               )}
               <div>
-                <Typography variant="h6" color="gray-800">
+                <Typography variant="h6" color="black">
                   {announcement.postedBy}
                 </Typography>
-                <Typography variant="small" color="gray">
+                <Typography variant="small" color="black">
                   {format(announcement.timestamp.toDate(), "PPpp")}
                 </Typography>
               </div>

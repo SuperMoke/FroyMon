@@ -195,7 +195,7 @@ export default function QrScannerPage() {
                           ></div>
                           <Button
                             onClick={scanning ? stopScan : startScan}
-                            color={scanning ? "red" : "blue"}
+                            color={scanning ? "red" : "black"}
                             fullWidth
                           >
                             {scanning ? "Stop Scanning" : "Start Scanning"}
@@ -282,7 +282,7 @@ export default function QrScannerPage() {
                             </div>
                             <Button
                               onClick={handleManualSubmit}
-                              color="blue"
+                              color="black"
                               fullWidth
                             >
                               Submit
@@ -344,7 +344,7 @@ export default function QrScannerPage() {
                         <Button
                           className="mt-5"
                           onClick={handleSubmit}
-                          color="blue"
+                          color="black"
                           fullWidth
                         >
                           Submit
@@ -365,7 +365,7 @@ export default function QrScannerPage() {
                       <Typography variant="h5" color="blue-gray">
                         Thank you for submitting a ticket!
                       </Typography>
-                      <Button onClick={handleEndSession} color="blue">
+                      <Button onClick={handleEndSession} color="black">
                         Go back to homepage
                       </Button>
                     </div>

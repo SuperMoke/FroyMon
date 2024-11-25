@@ -191,7 +191,7 @@ export default function QrScannerPage() {
                       ></div>
                       <Button
                         onClick={scanning ? stopScan : startScan}
-                        color={scanning ? "red" : "blue"}
+                        color={scanning ? "red" : "black"}
                         fullWidth
                       >
                         {scanning ? "Stop Scanning" : "Start Scanning"}
@@ -264,7 +264,7 @@ export default function QrScannerPage() {
                         </div>
                         <Button
                           onClick={handleManualSubmit}
-                          color="blue"
+                          color="black"
                           fullWidth
                         >
                           Submit
@@ -320,7 +320,7 @@ export default function QrScannerPage() {
                     <Button
                       className="mt-5"
                       onClick={handleSubmit}
-                      color="blue"
+                      color="black"
                       fullWidth
                     >
                       Submit

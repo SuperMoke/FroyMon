@@ -12,8 +12,11 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { AiOutlineAudit } from "react-icons/ai";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar({ isOpen, toggleSidebar }) {
+  const pathname = usePathname();
+
   return (
     <>
       {isOpen && (
@@ -43,7 +46,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <HomeIcon className="h-5 w-5" />
@@ -53,7 +60,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin/computerticket"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/computerticket"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <DocumentTextIcon className="h-5 w-5" />
@@ -63,7 +74,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin/computer_report"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/computer_report"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <AiOutlineAudit className="h-5 w-5" />
@@ -73,7 +88,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin/accountmanagement"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/accountmanagement"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <UserIcon className="h-5 w-5" />
@@ -83,7 +102,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin/generateqr"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/generateqr"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <QrCodeIcon className="h-5 w-5" />
@@ -93,7 +116,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
               <li>
                 <Link
                   href="/admin/audit_trails"
-                  className="flex items-center gap-2 p-2 hover:bg-blue-gray-50 rounded-md"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/audit_trails"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
                   onClick={toggleSidebar}
                 >
                   <AiOutlineAudit className="h-5 w-5" />
