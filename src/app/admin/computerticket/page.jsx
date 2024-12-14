@@ -45,6 +45,8 @@ import {
 } from "react-icons/fa";
 import RemarksSection from "./RemarksSection";
 import HistoryModal from "./HistoryModal";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 export default function ComputerTicket() {
   const TABLE_HEAD = [
@@ -338,6 +340,75 @@ export default function ComputerTicket() {
     currentPage * itemsPerPage
   );
 
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    // Add logo image at the center top
+    const logoWidth = 30; // Adjust size as needed
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.addImage(
+      "/froymon_logo.png",
+      "PNG",
+      (pageWidth - logoWidth) / 2,
+      10,
+      logoWidth,
+      logoWidth
+    );
+
+    // Add centered titles with bold text
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+
+    // Center the main title text
+    const title = "FroyMon: Computer Laboratory Monitoring System";
+    const titleWidth =
+      (doc.getStringUnitWidth(title) * 16) / doc.internal.scaleFactor;
+    doc.text(title, (pageWidth - titleWidth) / 2, logoWidth + 20);
+
+    // Add subtitle
+    const subtitle = "Computer Problem Report";
+    const subtitleWidth =
+      (doc.getStringUnitWidth(subtitle) * 16) / doc.internal.scaleFactor;
+    doc.text(subtitle, (pageWidth - subtitleWidth) / 2, logoWidth + 30);
+
+    // Add date with regular font
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.text(`Date: ${selectedDate}`, 14, logoWidth + 40);
+
+    const pdfColumns = TABLE_HEAD.slice(0, 8);
+
+    const data = filteredTicketData.map((ticket) => [
+      `${ticket.date} "&" ${ticket.timeIn}`,
+      ticket.computerLab,
+      ticket.computerNumber,
+      ticket.computerStatus,
+      ticket.description,
+      ticket.studentName,
+      ticket.ticketStatus,
+      Array.isArray(ticket.remarks)
+        ? ticket.remarks.map((r) => r.text).join(", ")
+        : "No Remarks",
+    ]);
+
+    doc.autoTable({
+      head: [pdfColumns],
+      body: data,
+      startY: logoWidth + 45,
+      styles: { fontSize: 8, cellPadding: 2 },
+      columnStyles: {
+        4: { cellWidth: 40 },
+        7: { cellWidth: 40 },
+      },
+      headStyles: {
+        fillColor: [66, 66, 66],
+        textColor: [255, 255, 255],
+      },
+    });
+
+    doc.save(`computer-tickets-${selectedDate}.pdf`);
+  };
+
   // Add this useEffect to reset pagination when search/filter changes
   useEffect(() => {
     setCurrentPage(1);
@@ -414,7 +485,15 @@ export default function ComputerTicket() {
                   </div>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-4 mb-4"></div>
+              <div className="flex flex-wrap gap-4 mb-4">
+                <Button
+                  className="self-end"
+                  onClick={downloadPDF}
+                  color="black"
+                >
+                  Download PDF
+                </Button>
+              </div>
               <Card className="overflow-x-auto px-0">
                 <table className="w-full table-auto text-left">
                   <thead>
@@ -500,7 +579,7 @@ export default function ComputerTicket() {
                           <td className="p-4">
                             <Button
                               variant="text"
-                              color="blue"
+                              color="black"
                               onClick={() => handleViewHistory(ticket.id)}
                             >
                               View History

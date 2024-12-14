@@ -34,6 +34,12 @@ import Sidebar from "../sidebar";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import {
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
+} from "@material-tailwind/react";
 
 export default function AdminProfile() {
   const [name, setName] = useState("");
@@ -54,6 +60,8 @@ export default function AdminProfile() {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isChangingName, setIsChangingName] = useState(false);
   const [newName, setNewName] = useState("");
+  const [openNameDialog, setOpenNameDialog] = useState(false);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -72,6 +80,39 @@ export default function AdminProfile() {
     checkAuth();
   }, [user, loading, router]);
 
+  // First, add these dialog-related functions after the existing state declarations:
+
+  const handleOpenNameDialog = () => {
+    if (!newName.trim()) {
+      toast.error("Please enter a name first");
+      return;
+    }
+    setOpenNameDialog(true);
+  };
+
+  const handleOpenPasswordDialog = () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error("All password fields are required");
+      return;
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      toast.error(
+        "Password must contain at least 12 characters, including uppercase, lowercase, number and special character"
+      );
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("New password and confirm password do not match");
+      return;
+    }
+
+    setOpenPasswordDialog(true);
+  };
+
   const handleChangeName = async () => {
     setIsChangingName(true);
     try {
@@ -79,7 +120,6 @@ export default function AdminProfile() {
         toast.error("Please enter a valid name");
         return;
       }
-
       const userRef = collection(db, "user");
       const userQuery = query(userRef, where("email", "==", email));
       const userSnapshot = await getDocs(userQuery);

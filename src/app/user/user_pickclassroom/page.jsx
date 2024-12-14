@@ -324,7 +324,7 @@ export default function PickClassroom() {
                     <Input
                       className="mb-3"
                       label="Enter the Pin Code"
-                      type="password"
+                      type="text"
                       onChange={(e) => setPinCode(e.target.value)}
                     ></Input>
                     <Button

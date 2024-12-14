@@ -75,6 +75,9 @@ const Admin_CreateUser = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isEditLoading, setIsEditLoading] = useState(false);
   const [isBulkUploading, setIsBulkUploading] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openResetDialog, setOpenResetDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     if (loading) return;
@@ -282,16 +285,9 @@ const Admin_CreateUser = () => {
     setOpenEditDialog(true);
   };
 
-  const handleResetPassword = async (userId, userRole) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to reset the password this user?"
-    );
-
-    if (!isConfirmed) {
-      return; // Exit if user cancels
-    }
+  const handleResetPassword = async () => {
     let defaultPassword;
-    switch (userRole) {
+    switch (selectedUser.role) {
       case "Student":
         defaultPassword = "student123";
         break;
@@ -311,11 +307,15 @@ const Admin_CreateUser = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid: userId, newPassword: defaultPassword }),
+        body: JSON.stringify({
+          uid: selectedUser.id,
+          newPassword: defaultPassword,
+        }),
       });
 
       if (response.ok) {
         toast.success("Password reset successfully!");
+        setOpenResetDialog(false);
       } else {
         throw new Error("Failed to reset password");
       }
@@ -376,28 +376,19 @@ const Admin_CreateUser = () => {
     XLSX.writeFile(workbook, "user_upload_template.xlsx");
   };
 
-  const handleDeleteUser = async (userId) => {
-    // Add confirmation dialog
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
-
-    if (!isConfirmed) {
-      return; // Exit if user cancels
-    }
-
+  const handleDeleteUser = async () => {
     try {
       const response = await fetch("/api/deleteUser", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid: userId }),
+        body: JSON.stringify({ uid: selectedUser.id }),
       });
       const data = await response.json();
       if (response.ok) {
-        console.log("User deleted successfully");
         toast.success("User deleted successfully!");
+        setOpenDeleteDialog(false);
       } else {
         throw new Error(data.error);
       }
@@ -437,20 +428,37 @@ const Admin_CreateUser = () => {
   const validateBulkEmails = (users) => {
     const validRoles = ["Student", "Teacher", "Admin"];
 
-    // Check both email and role validity
-    const invalidUsers = users.filter(
-      (user) =>
-        !user.email.toLowerCase().endsWith("@cca.edu.ph") ||
-        !validRoles.includes(user.role?.toLowerCase())
+    // Separate validation for emails and roles
+    const invalidEmails = users.filter(
+      (user) => !user.email?.toLowerCase().endsWith("@cca.edu.ph")
+    );
+    const invalidRoles = users.filter(
+      (user) => !validRoles.includes(user.role)
     );
 
-    if (invalidUsers.length > 0) {
-      toast.error(
-        `Invalid entries found. Emails must end with @cca.edu.ph and roles must be Student, Teacher, or Admin.`
+    let isValid = true;
+
+    if (invalidEmails.length > 0) {
+      toast.error(`Invalid emails found. All emails must end with @cca.edu.ph`);
+      console.log(
+        "Invalid emails:",
+        invalidEmails.map((user) => user.email)
       );
-      return false;
+      isValid = false;
     }
-    return true;
+
+    if (invalidRoles.length > 0) {
+      toast.error(
+        `Invalid roles found. Roles must be Student, Teacher, or Admin`
+      );
+      console.log(
+        "Invalid roles:",
+        invalidRoles.map((user) => ({ email: user.email, role: user.role }))
+      );
+      isValid = false;
+    }
+
+    return isValid;
   };
 
   return isAuthorized ? (
@@ -571,9 +579,10 @@ const Admin_CreateUser = () => {
                           <Tooltip content="Reset the Password">
                             <IconButton
                               variant="text"
-                              onClick={() =>
-                                handleResetPassword(user.id, user.role)
-                              }
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setOpenResetDialog(true);
+                              }}
                             >
                               <LockClosedIcon className="h-5 w-5" />
                             </IconButton>
@@ -581,9 +590,10 @@ const Admin_CreateUser = () => {
                           <Tooltip content="Delete the Account">
                             <IconButton
                               variant="text"
-                              onClick={() =>
-                                handleDeleteUser(user.id, user.email)
-                              }
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setOpenDeleteDialog(true);
+                              }}
                             >
                               <TrashIcon className="h-5 w-5" />
                             </IconButton>
@@ -776,7 +786,7 @@ const Admin_CreateUser = () => {
           <Typography color="gray" className="mb-4">
             Upload a CSV or Excel file with details. It should have columns for
             Name, Email and Role. The role values should be: Student, Teacher,
-            or Admin (case insensitive). Download the template?
+            or Admin (case insensitive).Alos. Download the template?
             <Button
               color="gray"
               variant="text"
@@ -839,6 +849,49 @@ const Admin_CreateUser = () => {
           </Button>
         </DialogFooter>
         <ToastContainer />
+      </Dialog>
+
+      <Dialog
+        open={openDeleteDialog}
+        handler={() => setOpenDeleteDialog(false)}
+      >
+        <DialogHeader>Delete Account</DialogHeader>
+        <DialogBody>
+          Are you sure you want to delete the account for {selectedUser?.name}?
+          This action cannot be undone.
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="black"
+            onClick={() => setOpenDeleteDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDeleteUser}>
+            Delete Account
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog open={openResetDialog} handler={() => setOpenResetDialog(false)}>
+        <DialogHeader>Reset Password</DialogHeader>
+        <DialogBody>
+          Are you sure you want to reset the password for {selectedUser?.name}?
+          The password will be reset to the default based on their role.
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="black"
+            onClick={() => setOpenResetDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button color="black" onClick={handleResetPassword}>
+            Reset Password
+          </Button>
+        </DialogFooter>
       </Dialog>
 
       <ToastContainer />

@@ -6,68 +6,60 @@ import {
   MenuList,
   MenuItem,
   Typography,
-  IconButton,
   Button,
 } from "@material-tailwind/react";
 import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
-  Bars3Icon,
 } from "@heroicons/react/24/outline";
-import {
-  getFirestore,
-  getDocs,
-  query,
-  collection,
-  where,
-  updateDoc,
-  onSnapshot,
-} from "firebase/firestore";
+import { query, collection, where, onSnapshot } from "firebase/firestore";
 import { auth } from "../firebase";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { db } from "../firebase";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [profileUrl, setProfileUrl] = useState("");
-  const [email, setEmail] = useState("");
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    profileUrl: "",
+  });
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        auth.onAuthStateChanged(async (currentUser) => {
-          if (currentUser) {
-            const userEmail = currentUser.email;
-            const db = getFirestore();
-            const userQuery = query(
-              collection(db, "user"),
-              where("email", "==", userEmail)
-            );
-            const querySnapshot = await getDocs(userQuery);
-            if (!querySnapshot.empty) {
-              querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                setUserName(userData.name);
-                setEmail(userData.email);
-                setProfileUrl(userData.profileUrl);
+    const unsubscribeAuth = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        const userQuery = query(
+          collection(db, "user"),
+          where("email", "==", currentUser.email)
+        );
+
+        const unsubscribeSnapshot = onSnapshot(
+          userQuery,
+          (snapshot) => {
+            if (!snapshot.empty) {
+              const userDoc = snapshot.docs[0].data();
+              setUserData({
+                name: userDoc.name,
+                email: userDoc.email,
+                profileUrl: userDoc.profileUrl,
               });
-            } else {
-              console.error("User not found or role not specified");
             }
+          },
+          (error) => {
+            console.error("Real-time data error:", error);
           }
-        });
-      } catch (error) {
-        console.error("Error fetching user data:", error);
+        );
+
+        return () => unsubscribeSnapshot();
       }
-    };
-    fetchUserData();
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
-  const router = useRouter();
   function handleLogout() {
     signOut(auth)
       .then(() => {
@@ -79,20 +71,6 @@ export default function Header() {
       });
   }
 
-  useEffect(() => {
-    const userRef = collection(db, "user");
-    const userQuery = query(userRef, where("email", "==", email));
-
-    const unsubscribe = onSnapshot(userQuery, (snapshot) => {
-      snapshot.forEach((doc) => {
-        const userData = doc.data();
-        setProfileUrl(userData.profileUrl);
-      });
-    });
-
-    return () => unsubscribe();
-  }, [email]);
-
   return (
     <header className="bg-blue-gray-50 shadow-md py-4 px-4 sm:px-10 flex justify-between items-center">
       <div className="flex items-center space-x-4 ml-auto">
@@ -100,15 +78,12 @@ export default function Header() {
           <MenuHandler>
             <div className="flex items-center space-x-2 cursor-pointer">
               <Avatar
-                src={profileUrl || "/Avatar.jpg"}
+                src={userData.profileUrl || "/Avatar.jpg"}
                 alt="Profile"
                 size="s"
               />
-              <Typography
-                variant="small"
-                className="text-base hidden sm:block "
-              >
-                {userName}
+              <Typography variant="small" className="text-base hidden sm:block">
+                {userData.name}
               </Typography>
             </div>
           </MenuHandler>

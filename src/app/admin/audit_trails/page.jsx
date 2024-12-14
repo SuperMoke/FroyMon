@@ -40,6 +40,9 @@ export default function Audit_Trails() {
   const [auditLogs, setAuditLogs] = useState([]); // For filtered/displayed logs
   const [allLogs, setAllLogs] = useState([]); // For storing all logs
   const [filterType, setFilterType] = useState("All");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -180,22 +183,24 @@ export default function Audit_Trails() {
 
   // Update the useEffect that handles filtering
   useEffect(() => {
-    // First filter logs based on selected type
-    const filteredLogs =
-      filterType === "All"
-        ? allLogs
-        : allLogs.filter((log) => log.type === filterType);
+    // Filter logs based on both type and date
+    const filteredLogs = allLogs.filter((log) => {
+      const logDate = log.timestamp.split(" ")[0]; // Extract date part from timestamp
+      const matchesType = filterType === "All" || log.type === filterType;
+      const matchesDate = logDate === selectedDate;
 
-    // Then sort the filtered logs by timestamp (latest to oldest)
+      return matchesType && matchesDate;
+    });
+
+    // Sort the filtered logs by timestamp (latest to oldest)
     const sortedLogs = filteredLogs.sort((a, b) => {
       const dateA = new Date(a.timestamp);
       const dateB = new Date(b.timestamp);
       return dateB - dateA;
     });
 
-    // Update the state with sorted logs
     setAuditLogs(sortedLogs);
-  }, [filterType, allLogs]);
+  }, [filterType, selectedDate, allLogs]);
 
   const renderAuditLogsTable = () => (
     <Card className="overflow-x-auto px-0">
@@ -284,18 +289,29 @@ export default function Audit_Trails() {
                 >
                   Audit Trails
                 </Typography>
-                <div>
-                  <Select
-                    label="Filter by Type"
-                    value={filterType}
-                    onChange={(value) => setFilterType(value)}
-                    className="w-full"
-                  >
-                    <Option value="All">All</Option>
-                    <Option value="Admin">Admin</Option>
-                    <Option value="Teacher">Teacher</Option>
-                    <Option value="Student">Student</Option>
-                  </Select>
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="relative">
+                    <Select
+                      label="Filter by Type"
+                      value={filterType}
+                      onChange={(value) => setFilterType(value)}
+                      className="w-full"
+                    >
+                      <Option value="All">All</Option>
+                      <Option value="Admin">Admin</Option>
+                      <Option value="Teacher">Teacher</Option>
+                      <Option value="Student">Student</Option>
+                    </Select>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      label="Filter by Date"
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="pr-5"
+                    />
+                  </div>
                 </div>
               </div>
               {renderAuditLogsTable()}

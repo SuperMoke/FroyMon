@@ -50,7 +50,7 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const Admin_CreateUser = () => {
+const Teacher_CreateUser = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("Student");
@@ -65,6 +65,9 @@ const Admin_CreateUser = () => {
   const [user, loading, error] = useAuthState(auth);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [openResetDialog, setOpenResetDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     if (loading) return;
@@ -157,9 +160,9 @@ const Admin_CreateUser = () => {
     setOpenEditDialog(true);
   };
 
-  const handleResetPassword = async (userId, userRole) => {
+  const handleResetPassword = async () => {
     let defaultPassword;
-    switch (userRole) {
+    switch (selectedUser.role) {
       case "Student":
         defaultPassword = "student123";
         break;
@@ -179,11 +182,15 @@ const Admin_CreateUser = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid: userId, newPassword: defaultPassword }),
+        body: JSON.stringify({
+          uid: selectedUser.id,
+          newPassword: defaultPassword,
+        }),
       });
 
       if (response.ok) {
         toast.success("Password reset successfully!");
+        setOpenResetDialog(false);
       } else {
         throw new Error("Failed to reset password");
       }
@@ -215,26 +222,19 @@ const Admin_CreateUser = () => {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
-
-    if (!isConfirmed) {
-      return; // Exit if user cancels
-    }
+  const handleDeleteUser = async () => {
     try {
       const response = await fetch("/api/deleteUser", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid: userId }),
+        body: JSON.stringify({ uid: selectedUser.id }),
       });
       const data = await response.json();
       if (response.ok) {
-        console.log("User deleted successfully");
         toast.success("User deleted successfully!");
+        setOpenDeleteDialog(false);
       } else {
         throw new Error(data.error);
       }
@@ -365,9 +365,10 @@ const Admin_CreateUser = () => {
                           <Tooltip content="Reset the Password">
                             <IconButton
                               variant="text"
-                              onClick={() =>
-                                handleResetPassword(user.id, user.role)
-                              }
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setOpenResetDialog(true);
+                              }}
                             >
                               <LockClosedIcon className="h-5 w-5" />
                             </IconButton>
@@ -375,9 +376,10 @@ const Admin_CreateUser = () => {
                           <Tooltip content="Delete the Account">
                             <IconButton
                               variant="text"
-                              onClick={() =>
-                                handleDeleteUser(user.id, user.email)
-                              }
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setOpenDeleteDialog(true);
+                              }}
                             >
                               <TrashIcon className="h-5 w-5" />
                             </IconButton>
@@ -487,9 +489,52 @@ const Admin_CreateUser = () => {
           </Button>
         </DialogFooter>
       </Dialog>
+      <Dialog
+        open={openDeleteDialog}
+        handler={() => setOpenDeleteDialog(false)}
+      >
+        <DialogHeader>Delete Account</DialogHeader>
+        <DialogBody>
+          Are you sure you want to delete the account for {selectedUser?.name}?
+          This action cannot be undone.
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="black"
+            onClick={() => setOpenDeleteDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button color="red" onClick={handleDeleteUser}>
+            Delete Account
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog open={openResetDialog} handler={() => setOpenResetDialog(false)}>
+        <DialogHeader>Reset Password</DialogHeader>
+        <DialogBody>
+          Are you sure you want to reset the password for {selectedUser?.name}?
+          The password will be reset to the default based on their role.
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="black"
+            onClick={() => setOpenResetDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button color="black" onClick={handleResetPassword}>
+            Reset Password
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
       <ToastContainer />
     </>
   ) : null;
 };
 
-export default Admin_CreateUser;
+export default Teacher_CreateUser;

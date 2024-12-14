@@ -54,7 +54,7 @@ const RemarksSection = ({ ticket, user }) => {
   return (
     <div className="w-full">
       {!isEditing ? (
-        <Button size="sm" color="blue" onClick={() => setIsEditing(true)}>
+        <Button size="sm" color="black" onClick={() => setIsEditing(true)}>
           <FaEdit className="mr-2" /> Add New Remark
         </Button>
       ) : (

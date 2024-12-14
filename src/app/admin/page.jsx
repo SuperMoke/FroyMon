@@ -81,6 +81,8 @@ export default function AdminPage() {
   const [announcementFilter, setAnnouncementFilter] = useState("all"); // all, today, week, month
   const [announcementPriority, setAnnouncementPriority] = useState("normal"); // normal, important, urgent
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [announcementToDelete, setAnnouncementToDelete] = useState(null);
 
   useEffect(() => {
     if (loading) return;
@@ -316,9 +318,16 @@ export default function AdminPage() {
   };
 
   const handleDeleteAnnouncement = async (id) => {
+    setAnnouncementToDelete(id);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = async () => {
     try {
-      await deleteDoc(doc(db, "announcements", id));
+      await deleteDoc(doc(db, "announcements", announcementToDelete));
       toast.success("Announcement deleted successfully");
+      setShowDeleteConfirm(false);
+      setAnnouncementToDelete(null);
     } catch (error) {
       console.error("Error deleting announcement:", error);
       toast.error("Failed to delete announcement");
@@ -491,6 +500,30 @@ export default function AdminPage() {
         <DialogFooter>
           <Button variant="text" onClick={() => setIsModalOpen(false)}>
             Close
+          </Button>
+        </DialogFooter>
+      </Dialog>
+
+      <Dialog
+        open={showDeleteConfirm}
+        handler={() => setShowDeleteConfirm(false)}
+      >
+        <DialogHeader>Confirm Deletion</DialogHeader>
+        <DialogBody>
+          Are you sure you want to delete this announcement? This action cannot
+          be undone.
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="text"
+            color="gray"
+            onClick={() => setShowDeleteConfirm(false)}
+            className="mr-1"
+          >
+            Cancel
+          </Button>
+          <Button variant="gradient" color="red" onClick={confirmDelete}>
+            Delete
           </Button>
         </DialogFooter>
       </Dialog>
