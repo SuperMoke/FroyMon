@@ -70,7 +70,11 @@ export default function QrScannerPage() {
       html5QrCode = new Html5Qrcode("qr-code-reader");
       html5QrCode.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: 150 },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
+        },
         qrCodeSuccessCallback
       );
     }
@@ -185,7 +189,7 @@ export default function QrScannerPage() {
                     <Card className="w-full max-w-md p-4">
                       <div
                         id="qr-code-reader"
-                        className={`w-full h-64 mb-4 ${
+                        className={`w-[300px] h-[300px] relative mx-auto border-2 border-gray-300 rounded-lg overflow-hidden ${
                           scanning ? "block" : "hidden"
                         }`}
                       ></div>
