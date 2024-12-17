@@ -407,7 +407,7 @@ export default function Generatelobby() {
       await deleteDoc(lobbyDoc.ref);
 
       if (isSaving) {
-        router.push("/teacher/attendance_form");
+        router.push("/teacher/teacher_viewattendance");
       } else {
         setActiveStep(0);
         localStorage.clear();
