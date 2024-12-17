@@ -633,7 +633,7 @@ export default function Generatelobby() {
                 {activeStep === 1 && (
                   <>
                     <Typography variant="h6" className="mb-2">
-                      Student Participants ({participantCount})
+                      Student Participants
                     </Typography>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-64 overflow-y-auto">
                       {students.map((student, index) => (

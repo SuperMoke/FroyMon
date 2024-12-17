@@ -330,14 +330,14 @@ export default function PickClassroom() {
                     <Button
                       className="mt-3"
                       onClick={handleSubmitPinCode}
-                      color="blue"
+                      color="black"
                     >
                       Submit
                     </Button>
                     <Button
                       className="mt-3"
                       onClick={handleSubmitPinCode}
-                      color="blue"
+                      color="black"
                     >
                       Back
                     </Button>
@@ -368,7 +368,7 @@ export default function PickClassroom() {
                     <Button
                       className="mt-3"
                       onClick={handleEndSession}
-                      color="blue"
+                      color="black"
                     >
                       End of Session
                     </Button>
