@@ -17,15 +17,48 @@ import "react-toastify/dist/ReactToastify.css";
 import { updatePassword } from "firebase/auth";
 import { isAuthenticated } from "../utils/auth";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
+import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 
 export default function ChangePasswordPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showCurrentPassword, setshowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        const storedCredentials = sessionStorage.getItem("tempAuthCredentials");
+        if (!storedCredentials) {
+          router.push("/");
+          return;
+        }
+      } else {
+        const db = getFirestore();
+        const docRef = doc(db, "users", user.uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists() && docSnap.data().passwordChanged) {
+          router.push("/");
+        }
+      }
+      setLoading(false);
+    });
+
+    const storedCredentials = sessionStorage.getItem("tempAuthCredentials");
+    if (storedCredentials) {
+      const { currentPassword: storedPassword } = JSON.parse(storedCredentials);
+      setCurrentPassword(storedPassword);
+    }
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const checkPasswordChanged = async () => {
@@ -34,12 +67,10 @@ export default function ChangePasswordPage() {
         const db = getFirestore();
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data.passwordChanged) {
-            // Redirect the user away if password has been changed
-            router.push("/"); // Change to your desired path
+            router.push("/");
           } else {
             setLoading(false);
           }
@@ -47,8 +78,7 @@ export default function ChangePasswordPage() {
           setLoading(false);
         }
       } else {
-        // If the user is not authenticated, redirect to login
-        router.push("/login"); // Change to your login path
+        router.push("/");
       }
     };
     checkPasswordChanged();
@@ -58,7 +88,7 @@ export default function ChangePasswordPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Password validation rules
+    // Password validation rules remain the same
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -83,7 +113,14 @@ export default function ChangePasswordPage() {
 
     try {
       const user = auth.currentUser;
+      const storedCredentials = sessionStorage.getItem("tempAuthCredentials");
+
+      const { email, currentPassword } = JSON.parse(storedCredentials);
+      const credential = EmailAuthProvider.credential(email, currentPassword);
+
+      await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
+
       const db = getFirestore();
       await setDoc(
         doc(db, "users", user.uid),
@@ -93,7 +130,6 @@ export default function ChangePasswordPage() {
 
       toast.success("Password updated successfully!");
 
-      // Check roles and redirect
       const roleMap = {
         Student: "/user",
         Teacher: "/teacher",
@@ -110,8 +146,12 @@ export default function ChangePasswordPage() {
 
       router.push("/");
     } catch (error) {
-      toast.error("Error updating password. Please try again.");
-      console.error("Error:", error);
+      if (error.code === "auth/wrong-password") {
+        toast.error("Current password is incorrect");
+      } else {
+        toast.error("Error updating password. Please try again.");
+        console.error("Error:", error);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -180,7 +220,35 @@ export default function ChangePasswordPage() {
               )}
             </IconButton>
           </div>
-          <div className="mt-2 space-y-1">
+
+          <div className="mb-6">
+            <h2 className="text-black text-sm font-normal mb-2">
+              Confirm Password:
+            </h2>
+            <div className="relative flex w-full">
+              <Input
+                type={showConfirmPassword ? "text" : "password"}
+                label="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                className="pr-20"
+              />
+              <IconButton
+                variant="text"
+                size="sm"
+                className="!absolute right-1 top-1 rounded"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeIcon className="h-5 w-5" />
+                ) : (
+                  <EyeSlashIcon className="h-5 w-5" />
+                )}
+              </IconButton>
+            </div>
+          </div>
+          <div className="space-y-1 mb-2">
             <div
               className={`text-xs ${
                 passwordRequirements.length ? "text-green-500" : "text-red-500"
@@ -220,33 +288,6 @@ export default function ChangePasswordPage() {
             >
               {passwordRequirements.special ? "✓" : "✗"} One special character
               (@$!%*?&)
-            </div>
-          </div>
-          <div className="mb-6">
-            <h2 className="text-black text-sm font-normal mb-2">
-              Confirm Password:
-            </h2>
-            <div className="relative flex w-full">
-              <Input
-                type={showConfirmPassword ? "text" : "password"}
-                label="Confirm New Password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                className="pr-20"
-              />
-              <IconButton
-                variant="text"
-                size="sm"
-                className="!absolute right-1 top-1 rounded"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? (
-                  <EyeIcon className="h-5 w-5" />
-                ) : (
-                  <EyeSlashIcon className="h-5 w-5" />
-                )}
-              </IconButton>
             </div>
           </div>
           <div className="flex justify-center">

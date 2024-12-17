@@ -52,13 +52,27 @@ export default function SigninPage() {
     setIsLoading(true);
     const auth = getAuth();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-
       if (checkGenericPassword(password)) {
-        toast.warning("For security reasons, you must change your password.");
+        // Sign in and wait for completion
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+
+        sessionStorage.setItem(
+          "tempAuthCredentials",
+          JSON.stringify({
+            email,
+            currentPassword: password,
+          })
+        );
         router.push("/change-password");
         return;
       }
+
+      await signInWithEmailAndPassword(auth, email, password);
+
       const roleMap = {
         Student: "/user",
         Teacher: "/teacher",
@@ -143,7 +157,6 @@ export default function SigninPage() {
             </div>
           </div>
           <div className="flex justify-center">
-            {/* Replace the existing button code with this */}
             <Button
               type="submit"
               color="black"
