@@ -48,6 +48,19 @@ import HistoryModal from "./HistoryModal";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
+const TABLE_STYLES = {
+  dateColumn: "w-32 whitespace-nowrap",
+  labColumn: "w-28",
+  pcNumColumn: "w-24",
+  statusColumn: "w-28",
+  descColumn: "w-40",
+  nameColumn: "w-32",
+  ticketStatusColumn: "w-28",
+  remarksColumn: "w-40",
+  actionColumn: "w-24",
+  historyColumn: "w-24",
+};
+
 export default function ComputerTicket() {
   const TABLE_HEAD = [
     "Date and Time",
@@ -80,6 +93,33 @@ export default function ComputerTicket() {
   const [selectedTicketHistory, setSelectedTicketHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const getColumnClass = (header) => {
+    switch (header) {
+      case "Date and Time":
+        return "dateColumn";
+      case "Computer Lab":
+        return "labColumn";
+      case "Computer Number":
+        return "pcNumColumn";
+      case "Computer Status":
+        return "statusColumn";
+      case "Description":
+        return "descColumn";
+      case "Name":
+        return "nameColumn";
+      case "Status":
+        return "ticketStatusColumn";
+      case "Remarks":
+        return "remarksColumn";
+      case "Action":
+        return "actionColumn";
+      case "History":
+        return "historyColumn";
+      default:
+        return "";
+    }
+  };
 
   const generateRandomTicketData = () => {
     const computerLabs = [
@@ -501,7 +541,9 @@ export default function ComputerTicket() {
                       {TABLE_HEAD.map((head) => (
                         <th
                           key={head}
-                          className="border-y border-blue-gray-100 bg-blue-gray-50/50 p-4"
+                          className={`border-y border-blue-gray-100 bg-blue-gray-50/50 p-2 ${
+                            TABLE_STYLES[getColumnClass(head)]
+                          }`}
                         >
                           <Typography
                             variant="small"
@@ -525,40 +567,87 @@ export default function ComputerTicket() {
                               : ""
                           }
                         >
-                          <td className="p-4">
+                          {/* Date and Time */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[0])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.date} & {ticket.timeIn}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Computer Lab */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[1])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.computerLab}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Computer Number */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[2])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.computerNumber}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Computer Status */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[3])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.computerStatus}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Description */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[4])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.description}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Name */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[5])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {ticket.studentName}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Status */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[6])]
+                            }`}
+                          >
                             <TicketStatusList ticket={ticket} />
                           </td>
-                          <td className="p-4">
+
+                          {/* Remarks */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[7])]
+                            }`}
+                          >
                             <Typography variant="small">
                               {Array.isArray(ticket.remarks)
                                 ? ticket.remarks.map((remark, index) => (
@@ -569,14 +658,26 @@ export default function ComputerTicket() {
                                 : "No Remarks"}
                             </Typography>
                           </td>
-                          <td className="p-4">
+
+                          {/* Action */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[8])]
+                            }`}
+                          >
                             <RemarksSection
                               ticket={ticket}
                               updateTicketRemarks={updateTicketRemarks}
                               user={user}
                             />
                           </td>
-                          <td className="p-4">
+
+                          {/* History */}
+                          <td
+                            className={`p-2 ${
+                              TABLE_STYLES[getColumnClass(TABLE_HEAD[9])]
+                            }`}
+                          >
                             <Button
                               variant="text"
                               color="black"

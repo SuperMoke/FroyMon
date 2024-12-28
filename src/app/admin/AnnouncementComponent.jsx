@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardBody,
@@ -55,6 +55,14 @@ const AnnouncementComponent = ({
   };
 
   const filteredAnnouncements = announcements
+
+    .sort((a, b) => {
+      if (a.important && !b.important) return -1;
+      if (!a.important && b.important) return 1;
+
+      return b.timestamp.toDate() - a.timestamp.toDate();
+    })
+
     .filter((announcement) => {
       if (filter === "important") return announcement.important;
       if (filter === "regular") return !announcement.important;

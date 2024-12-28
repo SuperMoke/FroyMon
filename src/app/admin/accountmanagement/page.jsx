@@ -46,6 +46,7 @@ import {
   LockClosedIcon,
   PlusCircleIcon,
   TrashIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
 import { FaSearch } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -146,20 +147,30 @@ const Admin_CreateUser = () => {
         body: JSON.stringify({ email, password: defaultPassword, role, name }),
       });
       const data = await response.json();
-      if (response.ok) {
-        console.log("User created successfully:", data.uid);
-        toast.success("User created successfully!");
-        setOpenDialog(false);
-        setEmail("");
-        setPassword("");
-        setRole("");
-        setName("");
-      } else {
-        throw new Error(data.error);
+
+      if (!response.ok) {
+        const errorMessage =
+          data.error?.message || "An unexpected error occurred";
+
+        toast.error(`${errorMessage}`, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        throw new Error(errorMessage);
       }
+
+      toast.success("User created successfully!");
+      setOpenDialog(false);
+      setEmail("");
+      setPassword("");
+      setRole("");
+      setName("");
     } catch (error) {
       console.error("Error creating user:", error.message);
-      toast.error("Error creating user!");
     } finally {
       setIsLoading(false);
     }
@@ -314,6 +325,8 @@ const Admin_CreateUser = () => {
       });
 
       if (response.ok) {
+        const userDocRef = doc(db, "users", selectedUser.id);
+        await deleteDoc(userDocRef);
         toast.success("Password reset successfully!");
         setOpenResetDialog(false);
       } else {
@@ -584,7 +597,7 @@ const Admin_CreateUser = () => {
                                 setOpenResetDialog(true);
                               }}
                             >
-                              <LockClosedIcon className="h-5 w-5" />
+                              <KeyIcon className="h-5 w-5" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip content="Delete the Account">

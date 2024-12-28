@@ -14,7 +14,7 @@ import Image from "next/image";
 import { AiOutlineAudit } from "react-icons/ai";
 import { usePathname } from "next/navigation";
 
-export default function Sidebar({ isOpen, toggleSidebar }) {
+export default function Sidebar({ isOpen, toggleSidebar, reportCount = 0 }) {
   const pathname = usePathname();
 
   return (
@@ -69,6 +69,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                 >
                   <DocumentTextIcon className="h-5 w-5" />
                   <Typography>Computer Problem</Typography>
+                  {reportCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs font-medium px-2.5 py-0.5 rounded-full">
+                      {reportCount}
+                    </span>
+                  )}
                 </Link>
               </li>
               <li>

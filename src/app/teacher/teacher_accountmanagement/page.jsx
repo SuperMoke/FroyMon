@@ -44,6 +44,7 @@ import {
   LockClosedIcon,
   PlusCircleIcon,
   TrashIcon,
+  KeyIcon,
 } from "@heroicons/react/24/outline";
 import { FaSearch } from "react-icons/fa";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -189,6 +190,8 @@ const Teacher_CreateUser = () => {
       });
 
       if (response.ok) {
+        const userDocRef = doc(db, "users", selectedUser.id);
+        await deleteDoc(userDocRef);
         toast.success("Password reset successfully!");
         setOpenResetDialog(false);
       } else {
@@ -370,7 +373,7 @@ const Teacher_CreateUser = () => {
                                 setOpenResetDialog(true);
                               }}
                             >
-                              <LockClosedIcon className="h-5 w-5" />
+                              <KeyIcon className="h-5 w-5" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip content="Delete the Account">

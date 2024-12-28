@@ -22,6 +22,7 @@ export default function ComputerReport() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [ticketData, setTicketData] = useState([]);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [todayReportCount, setTodayReportCount] = useState(0);
 
   const [chartData, setChartData] = useState({
     labTickets: {},
@@ -32,6 +33,24 @@ export default function ComputerReport() {
   });
 
   const reportRef = useRef(null);
+
+  useEffect(() => {
+    if (ticketData.length > 0) {
+      // Get today's date in yyyy-MM-dd format
+      const today = format(new Date(), "yyyy-MM-dd");
+
+      // Count reports from today
+      const todayCount = ticketData.filter((ticket) => {
+        const ticketDate =
+          typeof ticket.date === "string"
+            ? format(parseISO(ticket.date), "yyyy-MM-dd")
+            : format(new Date(ticket.date), "yyyy-MM-dd");
+        return ticketDate === today;
+      }).length;
+
+      setTodayReportCount(todayCount);
+    }
+  }, [ticketData]);
 
   useEffect(() => {
     if (loading) return;
@@ -275,7 +294,7 @@ export default function ComputerReport() {
       <div className="bg-blue-gray-50 min-h-screen">
         <Header />
         <div className="flex flex-1">
-          <Sidebar />
+          <Sidebar reportCount={todayReportCount} />
           <main className="flex-1 p-4 sm:ml-64">
             <div className="container mx-auto">
               <div className="flex flex-col md:flex-row justify-between items-center mb-6">
