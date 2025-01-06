@@ -64,6 +64,7 @@ export default function ComputerTicket() {
   const [user, loading, error] = useAuthState(auth);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [laboratories, setLaboratories] = useState([]);
 
   useEffect(() => {
     if (loading) return;
@@ -78,6 +79,21 @@ export default function ComputerTicket() {
     };
     checkAuth();
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "laboratories"),
+      (snapshot) => {
+        const labsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setLaboratories(labsData);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (!isAuthorized) return;
@@ -160,21 +176,20 @@ export default function ComputerTicket() {
                       onChange={(value) => setFilterComputerLab(value)}
                       className="w-full"
                     >
-                      <Option value="">All Computer Laboratory</Option>
-                      <Option value="CLAB1">Computer Laboratory 1</Option>
-                      <Option value="CLAB2">Computer Laboratory 2</Option>
-                      <Option value="CLAB3">Computer Laboratory 3</Option>
-                      <Option value="CLAB4">Computer Laboratory 4</Option>
-                      <Option value="CLAB5">Computer Laboratory 5</Option>
-                      <Option value="CLAB6">Computer Laboratory 6</Option>
-                      <Option value="CiscoLab">Cisco Laboratory</Option>
-                      <Option value="AccountingLab">
-                        Accounting Laboratory
-                      </Option>
-                      <Option value="HardwareLab">Hardware Laboratory</Option>
-                      <Option value="ContactCenterLab">
-                        Contact Center Laboratory
-                      </Option>
+                      {[
+                        {
+                          id: "all",
+                          labCode: "",
+                          labName: "All Computer Laboratory",
+                        },
+                        ...laboratories.filter(
+                          (lab) => lab.status !== "Maintenance"
+                        ),
+                      ].map((lab) => (
+                        <Option key={lab.id} value={lab.labCode}>
+                          {lab.labName}
+                        </Option>
+                      ))}
                     </Select>
                   </div>
                   <div className="w-full md:w-64">

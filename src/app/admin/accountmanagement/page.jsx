@@ -611,6 +611,7 @@ const Admin_CreateUser = () => {
                               <TrashIcon className="h-5 w-5" />
                             </IconButton>
                           </Tooltip>
+                          <div></div>
                         </div>
                       </td>
                     </tr>
@@ -906,7 +907,6 @@ const Admin_CreateUser = () => {
           </Button>
         </DialogFooter>
       </Dialog>
-
       <ToastContainer />
     </>
   ) : null;

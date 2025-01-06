@@ -24,6 +24,8 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  setDoc,
+  doc,
 } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 import { useRouter } from "next/navigation";
@@ -32,6 +34,7 @@ import Header from "../header";
 import Sidebar from "../sidebar";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { FaCalendarAlt, FaChevronDown } from "react-icons/fa";
+import { saveAs } from "file-saver";
 
 export default function Audit_Trails() {
   const router = useRouter();
@@ -43,6 +46,8 @@ export default function Audit_Trails() {
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+
+  const [isRestoring, setIsRestoring] = useState(false);
 
   useEffect(() => {
     if (loading) return;
@@ -202,6 +207,64 @@ export default function Audit_Trails() {
     setAuditLogs(sortedLogs);
   }, [filterType, selectedDate, allLogs]);
 
+  const handleBackup = async () => {
+    const collections = [
+      "announcements",
+      "laboratories",
+      "lobbydata",
+      "sessions",
+      "studententries",
+      "teacherLogs",
+      "ticketHistory",
+      "ticketentries",
+      "user",
+      "users",
+    ];
+    const backupData = {};
+
+    for (const collectionName of collections) {
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      backupData[collectionName] = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+    }
+
+    const backupJson = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([backupJson], { type: "application/json" });
+    const filename = `froymon_backup_${new Date().toISOString()}.json`;
+    saveAs(blob, filename);
+  };
+
+  const handleRestore = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsRestoring(true);
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+      try {
+        const backupData = JSON.parse(e.target.result);
+        for (const [collectionName, documents] of Object.entries(backupData)) {
+          for (const document of documents) {
+            const { id, ...data } = document;
+            const docRef = doc(db, collectionName, id);
+            await setDoc(docRef, data);
+          }
+        }
+        alert("Restore completed successfully!");
+      } catch (error) {
+        console.error("Restore failed:", error);
+        alert("Failed to restore backup");
+      } finally {
+        setIsRestoring(false);
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   const renderAuditLogsTable = () => (
     <Card className="overflow-x-auto px-0">
       <table className="w-full table-auto text-left">
@@ -312,6 +375,63 @@ export default function Audit_Trails() {
                       className="pr-5"
                     />
                   </div>
+                </div>
+              </div>
+              <div className="flex gap-4 mb-2 justify-end">
+                <Button
+                  onClick={handleBackup}
+                  className="flex items-center gap-2"
+                  color="black"
+                >
+                  Backup Data
+                </Button>
+
+                <div>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleRestore}
+                    className="hidden"
+                    id="restore-file"
+                    disabled={isRestoring}
+                  />
+                  <Button
+                    onClick={() =>
+                      document.getElementById("restore-file").click()
+                    }
+                    className="flex items-center gap-2"
+                    color="black"
+                    disabled={isRestoring}
+                  >
+                    {isRestoring ? (
+                      <>
+                        <span className="animate-spin h-5 w-5 mr-2">
+                          <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        </span>
+                        Restoring...
+                      </>
+                    ) : (
+                      "Restore Data"
+                    )}
+                  </Button>
                 </div>
               </div>
               {renderAuditLogsTable()}

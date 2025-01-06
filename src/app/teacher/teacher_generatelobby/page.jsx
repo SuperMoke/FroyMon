@@ -36,6 +36,7 @@ import { FaChalkboardTeacher, FaUsers, FaCheckCircle } from "react-icons/fa";
 import Sidebar from "../sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { QRCode } from "react-qr-code";
 
 function generateRandomPin() {
   return Math.floor(100000 + Math.random() * 900000);
@@ -58,12 +59,13 @@ export default function Generatelobby() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [participantCount, setParticipantCount] = useState(0);
 
-  const [computerLab, setComputerLab] = useRecoilState(ComputerLabState);
+  const [computerLab, setComputerLab] = useState("");
 
   const [activeStep, setActiveStep] = useState(0);
   const [isLastStep, setIsLastStep] = useState(false);
   const [isFirstStep, setIsFirstStep] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [laboratories, setLaboratories] = useState([]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -117,6 +119,21 @@ export default function Generatelobby() {
     };
     checkAuth();
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "laboratories"),
+      (snapshot) => {
+        const labsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setLaboratories(labsData);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   // Add this new useEffect for checking active lobbies
   useEffect(() => {
@@ -557,22 +574,13 @@ export default function Generatelobby() {
                               localStorage.setItem("computerLab", value);
                             }}
                           >
-                            <Option value="CLAB1">Computer Laboratory 1</Option>
-                            <Option value="CLAB2">Computer Laboratory 2</Option>
-                            <Option value="CLAB3">Computer Laboratory 3</Option>
-                            <Option value="CLAB4">Computer Laboratory 4</Option>
-                            <Option value="CLAB5">Computer Laboratory 5</Option>
-                            <Option value="CLAB6">Computer Laboratory 6</Option>
-                            <Option value="CiscoLab">Cisco Laboratory</Option>
-                            <Option value="AccountingLab">
-                              Accounting Laboratory
-                            </Option>
-                            <Option value="HardwareLab">
-                              Hardware Laboratory
-                            </Option>
-                            <Option value="ContactCenterLab">
-                              Contact Center Laboratory
-                            </Option>
+                            {laboratories
+                              .filter((lab) => lab.status !== "Maintenance")
+                              .map((lab) => (
+                                <Option key={lab.id} value={lab.labCode}>
+                                  {lab.labName}
+                                </Option>
+                              ))}
                           </Select>
                           <Button
                             onClick={async () => {
@@ -603,27 +611,49 @@ export default function Generatelobby() {
                         Lobby Information
                       </Typography>
                       <Card className="w-full max-w-2xl p-6 mx-auto">
-                        <Typography variant="h6" className="mb-2">
-                          Code Generated: {pin}
-                        </Typography>
-                        <Typography variant="h6" className="mb-4">
-                          Computer Lab: {computerLab}
-                        </Typography>
-                        <div className="flex gap-4 mt-2">
-                          <Button
-                            onClick={() => endSession(pin, true)}
-                            color="black"
-                            fullWidth
-                          >
-                            Save Session
-                          </Button>
-                          <Button
-                            onClick={() => endSession(pin, false)}
-                            color="black"
-                            fullWidth
-                          >
-                            End Session
-                          </Button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Left Column - Information and Buttons */}
+                          <div className="space-y-4">
+                            <div className=" p-4 rounded-lg">
+                              <Typography variant="h6" className="mb-2">
+                                Code Generated: {pin}
+                              </Typography>
+                              <Typography variant="h6">
+                                Computer Lab: {computerLab}
+                              </Typography>
+                            </div>
+                            <div className="space-y-2">
+                              <Button
+                                onClick={() => endSession(pin, true)}
+                                color="black"
+                                fullWidth
+                              >
+                                Save Session
+                              </Button>
+                              <Button
+                                onClick={() => endSession(pin, false)}
+                                color="black"
+                                fullWidth
+                              >
+                                End Session
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Right Column - QR Code */}
+                          <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">
+                            <Typography variant="h6" className="mb-4">
+                              Scan QR Code to report computer issue
+                            </Typography>
+                            <div className="p-2 bg-white rounded-lg shadow-md">
+                              <QRCode
+                                value={computerLab}
+                                size={180}
+                                viewBox={`0 0 256 256`}
+                                className="mx-auto"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </Card>
                     </div>

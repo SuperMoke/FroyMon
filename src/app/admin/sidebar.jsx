@@ -92,6 +92,20 @@ export default function Sidebar({ isOpen, toggleSidebar, reportCount = 0 }) {
               </li>
               <li>
                 <Link
+                  href="/admin/computerlabmanagement"
+                  className={`flex items-center gap-2 p-2 rounded-md ${
+                    pathname === "/admin/computerlabmanagement"
+                      ? "bg-black text-white"
+                      : "hover:bg-blue-gray-50"
+                  }`}
+                  onClick={toggleSidebar}
+                >
+                  <ComputerDesktopIcon className="h-5 w-5" />
+                  <Typography>Computer Laboratory</Typography>
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/admin/accountmanagement"
                   className={`flex items-center gap-2 p-2 rounded-md ${
                     pathname === "/admin/accountmanagement"

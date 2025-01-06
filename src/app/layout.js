@@ -1,6 +1,5 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Provider from './Provider'
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -8,7 +7,6 @@ const APP_NAME = "FroyMon";
 const APP_DEFAULT_TITLE = "FroyMon: Computer Laboratory Monitoring System";
 const APP_TITLE_TEMPLATE = "%s - FroyMon App";
 const APP_DESCRIPTION = "HEHEHHEHEHE";
-
 
 export const metadata = {
   applicationName: APP_NAME,
@@ -46,14 +44,10 @@ export const metadata = {
   },
 };
 
-
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Provider>{children}</Provider>
-      </body>
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }

@@ -15,8 +15,9 @@ import { isAuthenticated } from "../../utils/auth";
 import Header from "../header";
 import Sidebar from "../sidebar";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase";
 import { FaQrcode, FaDownload } from "react-icons/fa";
+import { onSnapshot, collection } from "firebase/firestore";
 
 export default function Admin_GenerateQR() {
   const [computerNumber, setComputerNumber] = useState("");
@@ -26,6 +27,7 @@ export default function Admin_GenerateQR() {
   const qrCodeRef = useRef(null);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [laboratories, setLaboratories] = useState([]);
 
   useEffect(() => {
     if (loading) return;
@@ -40,6 +42,21 @@ export default function Admin_GenerateQR() {
     };
     checkAuth();
   }, [user, loading, router]);
+
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "laboratories"),
+      (snapshot) => {
+        const labsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setLaboratories(labsData);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
@@ -116,16 +133,16 @@ export default function Admin_GenerateQR() {
                     </Typography>
                     <Select
                       label="Select Computer Laboratory"
-                      onChange={(value) => setComputerLab(value)}
                       value={computerLab}
-                      required
-                      className="w-full"
+                      onChange={(e) => setComputerNumber(e.target.value)}
                     >
-                      {labOptions.map((lab) => (
-                        <Option key={lab.value} value={lab.value}>
-                          {lab.label}
-                        </Option>
-                      ))}
+                      {laboratories
+                        .filter((lab) => lab.status !== "Maintenance")
+                        .map((lab) => (
+                          <Option key={lab.id} value={lab.labCode}>
+                            {lab.labName}
+                          </Option>
+                        ))}
                     </Select>
                   </div>
                   <Button

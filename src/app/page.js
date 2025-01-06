@@ -17,6 +17,9 @@ import { isAuthenticated } from "../app/utils/auth";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { collection, query, getDocs, where } from "firebase/firestore";
+import { db } from "../app/firebase";
+import { createSession, checkExistingSessions } from "./utils/sessionManager";
 
 export default function SigninPage() {
   const [email, setEmail] = useState("");
@@ -51,9 +54,9 @@ export default function SigninPage() {
     e.preventDefault();
     setIsLoading(true);
     const auth = getAuth();
+
     try {
       if (checkGenericPassword(password)) {
-        // Sign in and wait for completion
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
@@ -71,32 +74,69 @@ export default function SigninPage() {
         return;
       }
 
-      await signInWithEmailAndPassword(auth, email, password);
+      // First authenticate the user
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
 
+      // Get user's role from Firestore
+      const userCollectionRef = collection(db, "user");
+      const userQuery = query(userCollectionRef, where("email", "==", email));
+      const userSnapshot = await getDocs(userQuery);
+
+      if (userSnapshot.empty) {
+        throw new Error("User profile not found");
+      }
+
+      const userData = userSnapshot.docs[0].data();
+      const userRole = userData.role;
+
+      if (!userRole) {
+        throw new Error("User role not assigned");
+      }
+
+      // Check for existing sessions before proceeding
+      const hasExistingSession = await checkExistingSessions(
+        userCredential.user.uid
+      );
+      if (hasExistingSession) {
+        toast.info("Signing out from other devices...");
+      }
+
+      // Create new session
+      await createSession(userCredential.user.uid);
+
+      // Route based on role
       const roleMap = {
         Student: "/user",
         Teacher: "/teacher",
         Admin: "/admin",
       };
-      for (const role of Object.keys(roleMap)) {
-        const hasRole = await isAuthenticated(role);
-        if (hasRole) {
-          router.push(roleMap[role]);
-          return;
-        }
+
+      if (roleMap[userRole]) {
+        router.push(roleMap[userRole]);
+      } else {
+        throw new Error(`Invalid role: ${userRole}`);
       }
-      console.error("User does not have a valid role");
     } catch (error) {
       console.error("Error signing in:", error);
       setLoginAttempts((prev) => prev + 1);
 
       if (loginAttempts >= 2) {
-        // Check for 3rd attempt (0, 1, 2)
         toast.error(
           "You have attempted to login 3 times. Please contact your teacher or MISSO to reset your password."
         );
       } else {
-        toast.error("Invalid email or password. Please try again.");
+        // More specific error messages
+        const errorMessage = error.message.includes("User role")
+          ? "Account setup incomplete. Please contact administrator."
+          : error.message.includes("other devices")
+          ? "Account signed in elsewhere. Please try again."
+          : "Invalid email or password. Please try again.";
+
+        toast.error(errorMessage);
       }
     } finally {
       setIsLoading(false);

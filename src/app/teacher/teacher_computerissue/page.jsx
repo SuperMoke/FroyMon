@@ -12,7 +12,14 @@ import {
   Alert,
 } from "@material-tailwind/react";
 import Image from "next/image";
-import { addDoc, collection, query, where, getDocs } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 import { Html5Qrcode } from "html5-qrcode";
 import { isAuthenticated } from "../../utils/auth";
@@ -22,9 +29,9 @@ import Header from "../header";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../firebase";
 import { FaQrcode, FaKeyboard, FaCheckCircle } from "react-icons/fa";
-import Sidebar from "../sidebar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Sidebar from "../sidebar";
 
 export default function QrScannerPage() {
   const [data, setData] = useState("");
@@ -42,6 +49,8 @@ export default function QrScannerPage() {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [showComputerInput, setShowComputerInput] = useState(false);
+  const [laboratories, setLaboratories] = useState([]);
 
   useEffect(() => {
     if (loading) return;
@@ -58,14 +67,35 @@ export default function QrScannerPage() {
   }, [user, loading, router]);
 
   useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "laboratories"),
+      (snapshot) => {
+        const labsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setLaboratories(labsData);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     let html5QrCode;
     if (scanning) {
       const qrCodeSuccessCallback = async (decodedText) => {
         setData(decodedText);
-        const [computerNumber, computerLab] = decodedText.split(" ");
-        setFormData((prev) => ({ ...prev, computerNumber, computerLab }));
-        setActiveStep(1);
-        setScanning(false);
+
+        if (decodedText.includes(" ")) {
+          const [computerNumber, computerLab] = decodedText.split(" ");
+          setFormData((prev) => ({ ...prev, computerNumber, computerLab }));
+          setActiveStep(1);
+        } else {
+          setFormData((prev) => ({ ...prev, computerLab: decodedText }));
+          setShowComputerInput(true);
+          setScanning(false);
+        }
       };
 
       html5QrCode = new Html5Qrcode("qr-code-reader");
@@ -84,11 +114,20 @@ export default function QrScannerPage() {
       if (html5QrCode) {
         html5QrCode
           .stop()
-          .then((ignore) => {})
+          .then()
           .catch((err) => console.error(err));
       }
     };
   }, [scanning]);
+
+  const handleComputerNumberSubmit = () => {
+    if (!formData.computerNumber) {
+      toast.error("Please enter a computer number");
+      return;
+    }
+    setShowComputerInput(false);
+    setActiveStep(1);
+  };
 
   const startScan = () => {
     setScanning(true);
@@ -146,7 +185,7 @@ export default function QrScannerPage() {
   };
 
   const handleEndSession = async () => {
-    router.push("/teacher");
+    router.push("/user");
   };
 
   const handleManualSubmit = () => {
@@ -159,11 +198,11 @@ export default function QrScannerPage() {
 
   return isAuthorized ? (
     <>
-      <div className="flex flex-col bg-blue-gray-50 min-h-screen">
+      <div className="bg-blue-gray-50 min-h-screen">
         <Header />
-        <div className="flex flex-1">
+        <div className="flex">
           <Sidebar />
-          <div className="flex-1 p-4 sm:ml-64">
+          <main className="flex-1 p-6 ml-64">
             <div className="container mx-auto px-4 py-8 ">
               <Card className="w-full max-w-4xl mx-auto shadow-lg ">
                 <div className="p-6">
@@ -185,116 +224,111 @@ export default function QrScannerPage() {
                   </Stepper>
 
                   {activeStep === 0 && (
-                    <div className="space-y-4">
-                      <Typography variant="h5" className="text-center">
-                        Scan The QR Code
-                      </Typography>
-                      <div className="flex justify-center">
-                        <Card className="w-full max-w-md p-4">
-                          <div
-                            id="qr-code-reader"
-                            className={`w-[300px] h-[300px] relative mx-auto border-2 border-gray-300 rounded-lg overflow-hidden ${
-                              scanning ? "block" : "hidden"
-                            }`}
-                          ></div>
-
-                          <Button
-                            onClick={scanning ? stopScan : startScan}
-                            color={scanning ? "red" : "black"}
-                            fullWidth
-                          >
-                            {scanning ? "Stop Scanning" : "Start Scanning"}
-                          </Button>
-                        </Card>
-                      </div>
-                      <div className="flex justify-center">
+                    <div className="space-y-8">
+                      <div className="space-y-4">
                         <Typography variant="h5" className="text-center">
-                          Or put the computer laboratory and computer number
+                          Scan The QR Code
                         </Typography>
+                        <div className="flex justify-center">
+                          <Card className="w-full max-w-md p-4">
+                            {!showComputerInput ? (
+                              <>
+                                <div
+                                  id="qr-code-reader"
+                                  className={`w-[300px] h-[300px] relative mx-auto border-2 border-gray-300 rounded-lg overflow-hidden ${
+                                    scanning ? "block" : "hidden"
+                                  }`}
+                                ></div>
+                                <Button
+                                  onClick={scanning ? stopScan : startScan}
+                                  color={scanning ? "red" : "black"}
+                                  fullWidth
+                                >
+                                  {scanning
+                                    ? "Stop Scanning"
+                                    : "Start Scanning"}
+                                </Button>
+                              </>
+                            ) : (
+                              <div className="space-y-4">
+                                <Typography
+                                  variant="h6"
+                                  className="text-center"
+                                >
+                                  Computer Lab: {formData.computerLab}
+                                </Typography>
+                                <Input
+                                  label="Enter Computer Number"
+                                  type="number"
+                                  value={formData.computerNumber}
+                                  onChange={(e) =>
+                                    setFormData((prev) => ({
+                                      ...prev,
+                                      computerNumber: e.target.value,
+                                    }))
+                                  }
+                                />
+                                <Button
+                                  onClick={handleComputerNumberSubmit}
+                                  color="black"
+                                  fullWidth
+                                >
+                                  Continue
+                                </Button>
+                              </div>
+                            )}
+                          </Card>
+                        </div>
                       </div>
-                      <div className="flex justify-center">
-                        <Card className="w-full max-w-md p-4">
-                          <div className="space-y-4">
-                            <div>
-                              <Typography
-                                variant="small"
-                                color="blue-gray"
-                                className="mb-2 font-medium"
-                              >
-                                Computer Laboratory
-                              </Typography>
+
+                      {/* Manual entry section only shows when not in computer input mode */}
+                      {!showComputerInput && (
+                        <div className="space-y-4">
+                          <Typography variant="h5" className="text-center">
+                            Or Enter Details Manually
+                          </Typography>
+                          <Card className="w-full max-w-md mx-auto p-4">
+                            <div className="space-y-4">
                               <Select
                                 label="Select Computer Laboratory"
-                                placeholder={undefined}
-                                required
+                                value={formData.computerLab}
                                 onChange={(value) =>
-                                  setFormData({
-                                    ...formData,
+                                  setFormData((prev) => ({
+                                    ...prev,
                                     computerLab: value,
-                                  })
+                                  }))
                                 }
                               >
-                                <Option value="CLAB1">
-                                  Computer Laboratory 1
-                                </Option>
-                                <Option value="CLAB2">
-                                  Computer Laboratory 2
-                                </Option>
-                                <Option value="CLAB3">
-                                  Computer Laboratory 3
-                                </Option>
-                                <Option value="CLAB4">
-                                  Computer Laboratory 4
-                                </Option>
-                                <Option value="CLAB5">
-                                  Computer Laboratory 5
-                                </Option>
-                                <Option value="CLAB6">
-                                  Computer Laboratory 6
-                                </Option>
-                                <Option value="CiscoLab">
-                                  Cisco Laboratory
-                                </Option>
-                                <Option value="AccountingLab">
-                                  Accounting Laboratory
-                                </Option>
-                                <Option value="HardwareLab">
-                                  Hardware Laboratory
-                                </Option>
-                                <Option value="ContactCenterLab">
-                                  Contact Center Laboratory
-                                </Option>
+                                {laboratories
+                                  .filter((lab) => lab.status !== "Maintenance")
+                                  .map((lab) => (
+                                    <Option key={lab.id} value={lab.labCode}>
+                                      {lab.labName}
+                                    </Option>
+                                  ))}
                               </Select>
-                            </div>
-                            <div>
-                              <Typography
-                                variant="small"
-                                color="blue-gray"
-                                className="mb-2 font-medium"
-                              >
-                                Computer Number
-                              </Typography>
                               <Input
-                                label="Enter the computer number"
+                                label="Enter Computer Number"
                                 type="number"
+                                value={formData.computerNumber}
                                 onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
+                                  setFormData((prev) => ({
+                                    ...prev,
                                     computerNumber: e.target.value,
-                                  })
+                                  }))
                                 }
                               />
+                              <Button
+                                onClick={handleManualSubmit}
+                                color="black"
+                                fullWidth
+                              >
+                                Submit
+                              </Button>
                             </div>
-                            <Button
-                              onClick={handleManualSubmit}
-                              color="black"
-                              fullWidth
-                            >
-                              Submit
-                            </Button>
-                          </div>
-                        </Card>
-                      </div>
+                          </Card>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -378,10 +412,11 @@ export default function QrScannerPage() {
                 </div>
               </Card>
             </div>
-          </div>
+          </main>
         </div>
-        <ToastContainer />
       </div>
+
+      <ToastContainer />
     </>
   ) : null;
 }
