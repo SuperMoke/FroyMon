@@ -279,7 +279,11 @@ export default function ComputerLabManagement() {
                       </td>
                       <td className="p-4">
                         <Typography variant="small">
-                          {lab.updatedAt?.toDate().toLocaleDateString()}
+                          {lab.updatedAt
+                            ? new Date(
+                                lab.updatedAt.seconds * 1000
+                              ).toLocaleDateString()
+                            : "Not updated"}
                         </Typography>
                       </td>
                       <td className="p-4">
